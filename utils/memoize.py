@@ -1,9 +1,11 @@
-from settings import DATA_FOLDER
+from settings import settings
 import cPickle
 import os
 
 __all__ = ["memoize"]
 
+s = settings()
+DATA_FOLDER = s.Get('general.data_directory')
 
 cachedir = DATA_FOLDER + "pickles/"
 if not os.path.exists(cachedir): os.mkdir(cachedir)

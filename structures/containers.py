@@ -1,4 +1,4 @@
-from tagger import braubt_tagger
+#from tagger import braubt_tagger
 
 class tag:
     left  = None
@@ -33,7 +33,7 @@ class sentence:
         self.diagram    = sentence[5].split('\n')
         self.tag_set    = []
         
-        self.tagged_words = braubt_tagger.tag(normal_words)
+        #self.tagged_words = braubt_tagger.tag(normal_words)
         self.has_right_wall = ('RIGHT-WALL' in sentence[0] and False or True)
         self.has_left_wall  = ('LEFT-WALL'  in sentence[0] and False or True)
         
@@ -48,20 +48,6 @@ class iterative_container:
         self.hash_set = {}
         self.current_number = 1
         
-    def _hash(self, word):
-        for char in word:
-            value = ord(char) << 7
-            value = self._c_mul(1000003, value) ^ ord(char)
-            
-        value = value ^ len(word)
-        if value == -1:
-            value = False
-            
-        return value
-    
-    def _c_mul(self, a, b):
-        return eval(hex((long(a) * b) & 0xFFFFFFFFL)[:-1])
-    
     def add(self, word):
         if word not in self.hash_set:
             self.hash_set[word] = self.current_number
