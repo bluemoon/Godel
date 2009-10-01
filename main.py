@@ -17,6 +17,10 @@ class main:
             self.source = logParser.loadLogs(DATA_FOLDER + 'logs/2009-08-1*', limit=200)
 
             assert len(self.source) > 0, 'irc source is invalid.'
+
+        if self.options.engine == 'relex':
+            from engines.relex import relex
+            
             
             
 if __name__ == '__main__':
