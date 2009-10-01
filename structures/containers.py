@@ -85,3 +85,9 @@ class svm_container:
         return '<svm tags: %s>' % (self.words)
         #return '<svm words %s:tags %s>' % (len(self.words), len(self.tags))
 
+
+class relationships:
+    dependencies = None
+
+    def __init__(self, dependencies):
+        self.dependencies = dependencies

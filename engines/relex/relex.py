@@ -1,7 +1,8 @@
 import sys
-from subprocess import Popen, PIPE
-from memoize import persistent_memoize
 import pprint
+from subprocess import Popen, PIPE
+from utils.memoize import persistent_memoize
+from structures.containers import relationships
 
 RELEX_DIRECTORY = './'
 RELEX_VM_OPTS = "-Xmx1024m -Djava.library.path=/usr/lib:/usr/local/lib"
@@ -65,6 +66,8 @@ class relex:
         dependency_rel = self._before_and_after(wo_newlines, DEP_STRING)
         framing_rules = self._before_and_after(dependency_rel[1], '======')
         dependencies = framing_rules[0]
-
-        return (dependencies)
+        
+        ## and we use our container
+        r = relationships(dependencies)
+        return r
         

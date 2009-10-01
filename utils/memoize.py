@@ -1,8 +1,11 @@
+from settings import DATA_FOLDER
 import cPickle
 import os
+
 __all__ = ["memoize"]
 
-cachedir = "pickles/"
+
+cachedir = DATA_FOLDER + "pickles/"
 if not os.path.exists(cachedir): os.mkdir(cachedir)
 
 def persistent_memoize(func, limit=None):
