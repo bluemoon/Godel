@@ -1,7 +1,74 @@
 # -*- coding: utf-8 -*-
 from utils.debug import *
+import nltk
 
 class relex_analyze:
+    def string_before_and_after(self, string, item):
+        if item in string:
+            idx = string.index(item)
+            before = string[:idx]
+            after = string[idx+1:]
+            return (before, after)
+        else:
+            return False
+        
+    def analyze_frames(self, frames):
+        lp = nltk.LogicParser(type_check=True)
+        val = nltk.Valuation([('P', True), ('Q', True), ('R', False)])
+        dom = set([])
+
+        g = nltk.Assignment(dom)
+        m = nltk.Model(dom, val)
+        print m.evaluate('(P & Q)', g)
+        parsed = lp.parse('walk(angus)')
+
+        print parsed.function.type
+
+
+        for frame in frames:
+            debug(frame)
+    
+    def parse_frames(self, sentence):
+        frames_output = []
+        frames = sentence[1]
+        
+        for frame in frames.frames:
+            param = None
+            ## ^1_Transitive_action:Agent(hehe,you)
+            ## ^n_y:z(a,b)
+            if frame.startswith(';'):
+                ## skip it, its a comment
+                continue
+            left_half, right_half = self.string_before_and_after(frame, ':')
+
+            if '(' in right_half:
+                left_p = right_half.index('(')
+                
+            if ')' in right_half:
+                right_p = right_half.index(')')
+            
+            feature_name = right_half[:left_p]
+            parameters = right_half[left_p+1:right_p]
+            
+            if ',' in parameters:
+                left_param, right_param = parameters.split(',')
+            else:
+                param = parameters
+            
+            less_sym = left_half[1:]
+            
+            underscore_split = less_sym.split('_')
+            number = underscore_split[:1][0]
+            name = '_'.join(underscore_split[1:])
+            
+            #debug((number, name, feature_name, left_param, right_param))
+            if not param:
+                frames_output.append((number, name, feature_name, left_param, right_param))
+            else:
+                frames_output.append((number, name, feature_name, param))
+            
+        return frames_output
+            
     def parse_features(self, sentence):
         feature_output = []
         features = sentence[1]

@@ -75,9 +75,11 @@ class svm_container:
 
 class relationships:
     dependencies = None
+    frames       = None
 
-    def __init__(self, dependencies):
+    def __init__(self, dependencies, frames):
         self.dependencies = dependencies
+        self.frames = frames
         
     def __repr__(self):
         return '<relationships %s>' % (self.dependencies)

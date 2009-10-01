@@ -37,7 +37,7 @@ class relex:
     @persistent_memoize
     def process(self, sentence):
         output = []
-        command = 'java %s %s relex.RelationExtractor -n 4 -f -a -s "%s"' % (RELEX_VM_OPTS, RELEX_CLASSPATH, sentence)
+        command = 'java %s %s relex.RelationExtractor -n 1 -f -a -s "%s"' % (RELEX_VM_OPTS, RELEX_CLASSPATH, sentence)
         p = Popen(command, stdout=PIPE, stderr=open('/dev/null', 'w'), shell=True)
         while True:
             o = p.stdout.readline()
@@ -73,8 +73,10 @@ class relex:
         if dependency_rel:
             framing_rules = self._before_and_after(dependency_rel[1], '======')
             dependencies = framing_rules[0]
-        
+            frames = framing_rules[1]
+            f_ante = self._before_and_after(frames, FRAME_STRING)
+            frames = f_ante[0]
             ## and we use our container
-            r = relationships(dependencies)
+            r = relationships(dependencies, frames)
             return r
         

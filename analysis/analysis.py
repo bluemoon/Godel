@@ -10,9 +10,13 @@ class relex_analysis:
         
     def analyze(self, sentences):
         for sentence in sentences:
+            debug(sentence)
+            
             features = self.relex.parse_features(sentence)
+            frames   = self.relex.parse_frames(sentence)
             seperate_tags = self.relex.seperate_tags(features)
-            debug(seperate_tags)
+
+            self.relex.analyze_frames(frames)
             self.analogies.similar(seperate_tags)
                 
 

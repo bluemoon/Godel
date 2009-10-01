@@ -30,7 +30,10 @@ class main:
             self.source = logParser.loadLogs(data_folder + 'logs/2009-08-1*', limit=20)
 
             assert len(self.source) > 0, 'irc source is invalid.'
-
+            
+        elif self.options.source == 'sentence':
+            self.source = ['the quick brown fox jumps over the lazy dog.']
+            
         if self.options.engine == 'relex':
             from engines.relex import relex
             r = relex.relex()
