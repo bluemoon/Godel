@@ -13,7 +13,6 @@ class relex_analysis:
             features = self.relex.parse_features(sentence)
             seperate_tags = self.relex.seperate_tags(features)
             debug(seperate_tags)
-            
-            self.analogies.similar(sentence)
+            self.analogies.similar(seperate_tags)
                 
 
