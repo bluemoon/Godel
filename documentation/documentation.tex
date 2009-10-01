@@ -1,0 +1,80 @@
+\documentclass[a4paper,10pt]{report}
+
+
+% Title Page
+\title{NLP project documentation}
+\author{Alex Toney}
+
+
+\begin{document}
+\maketitle
+
+\section{File Overview}
+\begin{tabular}{ | l | l | }
+\hline
+debug.py	& For the pretty print debug function\\ \hline
+grammar\_fsm.py  & Contains the FSM for the semantics\\ \hline
+help.py         & Will contain help in the future\\ \hline
+lg\_fsm.py       & The old finite state machine for link grammar\\ \hline
+lg\_py.c         & The C module\\ \hline
+lg\_test.py      & The core file currently\\ \hline
+semantic\_rules.py & Contains all the semantic rules\\ \hline
+semantics.py    & Parser to retrieve the semantic rules from RelEx\\ \hline
+setup.py        & To compile the C module\\ \hline
+\end{tabular}
+\section{General Design}
+\subsection{Semantic Matching}
+
+For the semantic matching it has sets of rules, the input tags are run through 
+a non-deterministic finite state machine that keeps left and right registers.
+The rule sets are as follows, each rule has a regular expression to match to,
+it also has a set of registers to match to and then set if they match.
+
+\subsection{Semantic rule tokenizing}
+I have another non-deterministic finite state machine(read: regex finite state
+machine) to parse the rules that were taken from RelEx into something that is
+manageable.
+
+\section{Reference}
+\subsection{Link Grammar Reference}
+\begin{tabular}{ | l | l | }
+	\hline
+    A  & Attributive\\ \hline
+    AA & AA is used in the construction "How big a dog was it?"\\ \hline
+    AF & Connects adjectives to verbs in cases where the adjectiveis "fronted"\\ \hline
+    B  & Is used in a number of situations, involving relative clauses and questions.\\ \hline
+    D  & Connects determiners to nouns,\\ \hline
+    EA & Connects adverbs to adjectives,\\ \hline
+    EB & Connects adverbs to forms of "be" before an object, adjective, or prepositional phrase,\\ \hline
+    I  & Connects certain verbs with infinitives,\\ \hline
+    J  & Connects prepositions to their objects,\\ \hline
+    M  & Connects nouns to various kinds of post-nominal modifiers without commas,\\ \hline
+    Mv & Connects verbs (and adjectives) to modifying phrases,\\ \hline
+    O* & Connects transitive verbs to direct or indirect objects,\\ \hline
+    OX & Is a special object connector used for "filler" subjects like "it" and "there",\\ \hline
+    Pp & Connects forms of "have" with past participles,\\ \hline
+    Pa & Connects certain verbs to predicative adjectives,\\ \hline
+    R  & Connects nouns to relative clauses,\\ \hline
+    S  & Connects subject-nouns to finite verbs,\\ \hline
+    Ss & Noun-verb Agreement,\\ \hline
+    Sp & Noun-verb Agreement,\\ \hline
+    Wd & Declarative Sentences,\\ \hline
+    Wq & Questions,\\ \hline
+    Ws & Questions,\\ \hline
+    Wj & Questions,\\ \hline
+    Wi & Imperatives,\\ \hline
+    Xi & Abbreviations,\\ \hline
+    Xp & Periods,\\ \hline
+    Xx & Colons and semi-colons,\\ \hline
+    Z  & Connects the preposition "as" to certain verbs,\\ \hline
+\end{tabular}
+\section{Other Projects}
+\begin{enumerate}
+ \item FreeLing -- http://www.lsi.upc.edu/~nlp/freeling/
+ \item NLTK
+ \item RelEx
+ \item OpenCog
+ \item Stanford Parser
+\end{enumerate}
+
+\end{document}          
