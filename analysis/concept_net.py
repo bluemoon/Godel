@@ -1,22 +1,23 @@
 import os
 os.environ['CONCEPTNET_DB_CONFIG'] = os.getcwd() + '/data/conceptnet/db_config.py'
 
-from csc.util.persist import get_picklecached_thing
-from csc.nl import get_nl
-from csc.nl.euro import LemmatizedEuroNL
-from csc.conceptnet4.models import *
-from csc.conceptnet4.analogyspace import conceptnet_2d_from_db
+#from csc.util.persist import get_picklecached_thing
+#from csc.nl import get_nl
+#from csc.nl.euro import LemmatizedEuroNL
+#from csc.conceptnet4.models import *
+#from csc.conceptnet4.analogyspace import conceptnet_2d_from_db
 #from csc.divisi.flavors import ConceptByFeatureMatrix
 
 from utils.debug import *
 
 class Analogies:
     def __init__(self):
-        self.en_nl = get_nl('en')
-        self.normalizer = LemmatizedEuroNL('en')
-        self.cnet = conceptnet_2d_from_db('en')
-        self.analogyspace = self.cnet.svd(k=100)
-
+        #self.en_nl = get_nl('en')
+        #self.normalizer = LemmatizedEuroNL('en')
+        #self.cnet = conceptnet_2d_from_db('en')
+        #self.analogyspace = self.cnet.svd(k=100)
+        pass
+    
     def similar(self, word_set):
         pass
         '''

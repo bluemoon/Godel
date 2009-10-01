@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #from tagger import braubt_tagger
 
 class tag:
@@ -77,3 +78,6 @@ class relationships:
 
     def __init__(self, dependencies):
         self.dependencies = dependencies
+        
+    def __repr__(self):
+        return '<relationships %s>' % (self.dependencies)

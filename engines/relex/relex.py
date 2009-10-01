@@ -1,13 +1,16 @@
+# -*- coding: utf-8 -*-
 import sys
 import pprint
+
 from subprocess import Popen, PIPE
 from utils.memoize import persistent_memoize
 from structures.containers import relationships
+from utils.debug import *
 
 RELEX_DIRECTORY = './'
 RELEX_VM_OPTS = "-Xmx1024m -Djava.library.path=/usr/lib:/usr/local/lib"
 RELEX_CLASSPATH = "-classpath \
-bin:\
+engines/relex/bin:\
 /home/bluemoon/Downloads/jwnl.jar:\
 /usr/local/share/java/jwnl-1.4rc2.jar:\
 /usr/local/share/java/jwnl-1.3.3.jar:\
@@ -34,7 +37,7 @@ class relex:
     @persistent_memoize
     def process(self, sentence):
         output = []
-        command = 'java %s %s relex.RelationExtractor -n 4 -l -t -f -a -s "%s"' % (RELEX_VM_OPTS, RELEX_CLASSPATH, sentence)
+        command = 'java %s %s relex.RelationExtractor -n 4 -f -a -s "%s"' % (RELEX_VM_OPTS, RELEX_CLASSPATH, sentence)
         p = Popen(command, stdout=PIPE, stderr=open('/dev/null', 'w'), shell=True)
         while True:
             o = p.stdout.readline()
@@ -53,6 +56,7 @@ class relex:
             return False
     
     def parse_output(self, input_from):
+        #debug(input_from)
         wo_newlines = []
         for x in input_from:
             y = x.split('\n')
@@ -63,11 +67,14 @@ class relex:
         DEP_STRING   = 'Dependency relations:'
         FRAME_STRING = 'Framing rules applied:'
         ANTE_STRING  = 'Antecedent candidates:'
-        dependency_rel = self._before_and_after(wo_newlines, DEP_STRING)
-        framing_rules = self._before_and_after(dependency_rel[1], '======')
-        dependencies = framing_rules[0]
         
-        ## and we use our container
-        r = relationships(dependencies)
-        return r
+        dependency_rel = self._before_and_after(wo_newlines, DEP_STRING)
+
+        if dependency_rel:
+            framing_rules = self._before_and_after(dependency_rel[1], '======')
+            dependencies = framing_rules[0]
+        
+            ## and we use our container
+            r = relationships(dependencies)
+            return r
         
