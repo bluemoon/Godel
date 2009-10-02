@@ -36,6 +36,7 @@ class relex_analyze:
             param = None
             ## ^1_Transitive_action:Agent(hehe,you)
             ## ^n_y:z(a,b)
+            ## (head, dependent)
             if frame.startswith(';'):
                 ## skip it, its a comment
                 continue
