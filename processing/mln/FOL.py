@@ -22,7 +22,6 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 import sys
 
 from pyparsing import *
@@ -741,7 +740,7 @@ class CountConstraint(NonLogicalConstraint):
             yield GroundCountConstraint(gndAtoms, self.op, self.count), []
         
     def _iterAssignment(self, mln, variables, assignment):
-        '''iterates over all possible assignments for the given variables of this constraint's literal
+        '''iterates over all possible assignments for the given variables of this constraints literal
                 variables: the variables that are still to be grounded'''
         # if all variables have been grounded, we have the complete assigment
         if len(variables) == 0:
@@ -909,6 +908,7 @@ def parseFormula(input):
     tree = TreeBuilder()
     literal.setParseAction(lambda a,b,c: tree.trigger(a,b,c,'lit'))
     negation.setParseAction(lambda a,b,c: tree.trigger(a,b,c,'!'))
+    
     #item.setParseAction(lambda a,b,c: foo(a,b,c,'item'))
     disjunction.setParseAction(lambda a,b,c: tree.trigger(a,b,c,'v'))
     conjunction.setParseAction(lambda a,b,c: tree.trigger(a,b,c,'^'))
@@ -918,6 +918,7 @@ def parseFormula(input):
     equality.setParseAction(lambda a,b,c: tree.trigger(a,b,c,"="))
     count_constraint.setParseAction(lambda a,b,c: tree.trigger(a,b,c,'count'))
     f = formula + StringEnd()
+    
     #print "parsing %s..." % input
     f.parseString(input)
     #print "done"

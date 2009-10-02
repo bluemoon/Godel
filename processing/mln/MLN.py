@@ -78,17 +78,17 @@ import os
 import random
 import time
 import traceback
-if "java" not in sys.platform:
-    from pyparsing import ParseException
-else: # using Jython (assuming 2.2)
-    from jyparsing import ParseException
-    from jythonext import set    
+
+from pyparsing import ParseException
+
 try:
     import numpy
     from scipy.optimize import fmin_bfgs, fmin_cg, fmin_ncg, fmin_tnc, fmin_l_bfgs_b
 except:
     sys.stderr.write("Warning: Failed to import SciPy/NumPy (http://www.scipy.org)! Parameter learning with the MLN class is disabled.\n")
+    
 from math import exp, log, floor, ceil, e, sqrt
+
 try:
     if not DEBUG:
         import psyco # Don't use Psyco when debugging!
@@ -129,6 +129,9 @@ class ParameterLearningMeasures:
     _byName = dict([(x,y) for (y,x) in _names.iteritems()])
 
 # TODO Note: when counting diffs (PLL), the assumption is made that no formula contains two atoms that are in the same block
+
+
+### XXX: Where do these really belong?
 
 # -- helper functions
 
@@ -207,8 +210,8 @@ def evidence2conjunction(evidence):
     evidence = map(lambda x: {True:"", False:"!"}[x[1]] + x[0], evidence.iteritems())
     return " ^ ".join(evidence)
 
-# -- Markov logic network
 
+# -- Markov logic network
 class MLN:
     '''
     represents a Markov logic network and/or a ground Markov network
@@ -263,13 +266,16 @@ class MLN:
         self.formulaGroups = []
         self.closedWorldPreds = []
         formulatemplates = []
+        
         # read MLN file
-        f = file(filename)
-        text = f.read()
-        f.close()
+        f_handle = file(filename)
+        text = f_handle.read()
+        f_handle.close()
+        
         # replace some meta-directives in comments
         text = re.compile(r'//\s*<group>\s*$', re.MULTILINE).sub("#group", text)
         text = re.compile(r'//\s*</group>\s*$', re.MULTILINE).sub("#group.", text)
+        
         # remove comments
         text = stripComments(text)
         # read lines
@@ -298,11 +304,13 @@ class MLN:
                     self.domains[domName] = constants
                     self.domDecls.append(line)
                     continue
+                
                 # probability requirement
                 m = re.match(r"P\((.*?)\)\s*=\s*([\.\de]+)", line)
                 if m != None:
                     self.probreqs.append((strFormula(FOL.parseFormula(m.group(1))), m.group(2)))
                     continue
+                
                 # mutex constraint
                 if re.search(r"[a-z_][-_'a-zA-Z0-9]*\!", line) != None: 
                     pred = parsePredicate(line)
@@ -318,6 +326,7 @@ class MLN:
                         argTypes = map(lambda x: x.strip("!"), pred[1])
                         self.predicates[pred[0]] = argTypes
                     continue
+                
                 # predicate decl or formula with weight
                 else:
                     # try predicate declaration
@@ -443,18 +452,24 @@ class MLN:
     def __createPossibleWorlds(self, values, idx, code, bit):
         if idx == len(self.gndAtoms):
             if code in self.worldCode2Index:
-                raise Exception("Too many possible worlds") # this actually never happens because Python can handle "infinitely" long ints
+                raise Exception("Too many possible worlds")
+
+            # this actually never happens because Python can handle "infinitely" long ints
             self.worldCode2Index[code] = len(self.worlds)
             self.worlds.append({"values": values})
             if len(self.worlds) % 1000 == 0:
                 #print "%d\r" % len(self.worlds)
                 pass
+
             return
+
         # values that can be set for the truth value of the ground atom with index idx
         possible_settings = [True, False]
         # check for rigid predicates: for rigid predicates, we consider both values only if the evidence value is
         # unknown, otherwise we use the evidence value
         restricted = False
+        
+        ## XXX: WTF
         if True:
             gndAtom = self.gndAtomsByIdx[idx]
             if gndAtom.predName in self.rigidPredicates:
@@ -462,6 +477,7 @@ class MLN:
                 if v != None:
                     possible_settings = [v]
                     restricted = True
+                    
         # check if setting the truth value for idx is critical for a block (which is the case when idx is the highest index in a block)
         if not restricted and idx in self.gndBlockLookup and POSSWORLDS_BLOCKING:
             block = self.gndBlocks[self.gndBlockLookup[idx]]
@@ -2939,16 +2955,21 @@ class SAMaxWalkSAT:
         self.mln = mln
         self.sum = 0
         self.evidenceBlocks = evidenceBlocks
+        
         wt = self.mln._weights()
         auto_threshold = -5
+
         for gf in self.mln.gndFormulas:
             gfw = wt[gf.idxFormula]
             if gf.isTrue(state):
                 self.sum += gfw
+                
             if gfw >= hardWeight:
                 auto_threshold += gfw
+                
         if threshold == None:
             threshold = auto_threshold
+            
         self.threshold = threshold
     
     def run(self, verbose=False):
@@ -3022,7 +3043,11 @@ class SAMaxWalkSAT:
             #mln.printState(self.state)
             pass
 
+
 import FOL # import here so that cyclic import from RRF works and RRFMLN can be subclassed from MLN
+
+
+### TODO: use optparse
 
 # --- The MLN Tool --- (exposes only a tiny fraction of the capabilities of this class)
 if __name__ == '__main__':
@@ -3052,48 +3077,60 @@ if __name__ == '__main__':
     if args[0] == "print":
         mln = MLN(args[1])
         mln.write(sys.stdout)
+        
     elif args[0] == 'printGF':
         mln = MLN(args[1])
         mln.combineDB(args[2])
         mln.printGroundFormulas()
+        
     elif args[0] == 'printGC':
         mln = MLN(args[1])
         mln.combineDB(args[2])
         mln._toCNF()
         mln.printGroundFormulas()
+        
     elif args[0] == 'printGA':
         mln = MLN(args[1])
         mln.combineDB(args[2], groundFormulas=False)
         mln.printGroundAtoms()
+        
     elif args[0] == "inferExact":
         mln = MLN(args[1])
         mln.combine(eval(args[2]))
         mln.inferExact(args[3], args[4])
+        
     elif args[0] == "topWorlds":
         mln = MLN(args[1])
         mln.combineDB(args[2])
         mln.printTopWorlds(10)
+        
     elif args[0] == "inferGibbs":
         mln = MLN(args[1])
         mln.combine(eval(args[2]))
         mln.inferGibbs(args[3], args[4])
+        
     elif args[0] == "printDomains":
         mln = MLN(args[1])
         print mln.domains
+        
     elif args[0] == "test":
         test = args[1]
+        
         #os.chdir(r"c:\dev\Java\AI\SRLDB\mln\drinking")
         #os.chdir(r"c:\dev\Java\AI\SRLDB\mln\kitchen")
         #os.chdir("/usr/wiss/jain/work/code/SRLDB/mln/kitchen")
+        
         if test == 'gndFormulas':
             mln = MLN("in.actsit-tiny-conj-two.mln")
             mln.combine({"person": ["P"], "drink": ["D1", "D2"]})
             mln.printGroundFormulas()
+            
         elif test == "predGndings":
             mln = MLN("wts.blog.meal_goods.mln", verbose=True)
             mln.combineDB("q7.db")
             mln._getPredGroundings("usedByForWithIn")
             pass
+        
         elif test == 'infer':
             mln = MLN("wts.test.mln")
             mln.combine({"drink": ["D"], "person": ["P"]})
