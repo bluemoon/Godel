@@ -11,6 +11,21 @@ class tag:
         self.right = right
         self.tag   = tag
 
+class word:
+    word = None
+    POS  = None
+    idx  = None
+    ## stopword true/false
+    stopword = None
+    
+    def __init__(self, word, POS, ID):
+        self.word = word
+        self.POS  = POS
+        self.idx  = ID
+        
+    def __repr__(self):
+        return '<word %s %s %d>' % (self.word, self.POS, self.idx)
+
 class sentence:
     has_left_wall  = None
     has_right_wall = None

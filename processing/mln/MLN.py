@@ -128,13 +128,14 @@ class ParameterLearningMeasures:
     _shortnames = {LL: "LL", PLL: "PLL", BPLL: "BPLL"}
     _byName = dict([(x,y) for (y,x) in _names.iteritems()])
 
+
+
 # TODO Note: when counting diffs (PLL), the assumption is made that no formula contains two atoms that are in the same block
 
-
 ### XXX: Where do these really belong?
+### put in the parser
 
 # -- helper functions
-
 def logx(x):
     if x == 0:
         return -100
@@ -250,7 +251,7 @@ class MLN:
 
     # constructs an MLN object
     #   filename: the name of a .mln file
-    def __init__(self, filename, defaultInferenceMethod = InferenceMethods.MCSAT, parameterType = 'weights', verbose=False):
+    def __init__(self, filename=None, list_input=None, defaultInferenceMethod = InferenceMethods.MCSAT, parameterType = 'weights', verbose=False):
         t_start = time.time()
         self.domains = {}
         self.predicates = {}
@@ -266,25 +267,37 @@ class MLN:
         self.formulaGroups = []
         self.closedWorldPreds = []
         formulatemplates = []
-        
-        # read MLN file
-        f_handle = file(filename)
-        text = f_handle.read()
-        f_handle.close()
-        
+
+
+        if filename:
+            if os.path.exists(filename):
+                # read MLN file
+                f_handle = file(filename)
+                text = f_handle.read()
+                f_handle.close()
+                
+        elif list_input:
+            assert isinstance(list_input, list)
+            text = '\n'.join(list_input)
+            
         # replace some meta-directives in comments
         text = re.compile(r'//\s*<group>\s*$', re.MULTILINE).sub("#group", text)
         text = re.compile(r'//\s*</group>\s*$', re.MULTILINE).sub("#group.", text)
         
         # remove comments
         text = stripComments(text)
+
         # read lines
         hard_formulas = []
         max_weight = -1000000
-        if verbose: print "reading MLN..."
+        
+        if verbose:
+            print "reading MLN..."
+
         templateIdx2GroupIdx = {}
         inGroup = False
         idxGroup = -1
+
         for line in text.split("\n"):
             line = line.strip()
             try:
@@ -407,41 +420,45 @@ class MLN:
             self.formulaGroups.append(group)
         #print "time taken: %fs" % (time.time()-t_start)
 
-    def _groundAtoms(self, cur, predName, domNames):
+
+
+    def _groundAtoms(self, cur, predicateName, domainNames):
         # if there are no more parameters to ground, we're done
-        if domNames == []:
+        if domainNames == []:
             idxAtom = len(self.gndAtoms)
             
             # add atom
-            gndAtom = "%s(%s)" % (predName, ",".join(cur))
-            #print gndAtom
-            self.gndAtoms[gndAtom] = FOL.GroundAtom(predName, cur, idxAtom)
+            groundAtom = "%s(%s)" % (predicateName, ",".join(cur))
+            self.gndAtoms[groundAtom] = FOL.GroundAtom(predicateName, cur, idxAtom)
 
             # check if atom is in block
-            mutex = self.blocks.get(predName)
+            mutex = self.blocks.get(predicateName)
             if mutex != None:
-                blockName = "%s_" % predName
-                for i,v in enumerate(mutex):
+                blockName = "%s_" % predicateName
+                for i, v in enumerate(mutex):
                     if v == False:
                         blockName += cur[i]
+                        
                 if not blockName in self.gndBlocks:
                     self.gndBlocks[blockName] = []
+                    
                 self.gndBlocks[blockName].append(idxAtom)
                 self.gndBlockLookup[idxAtom] = blockName
 
             return
             
         # create ground atoms for each way of grounding the first of the remaining variables whose domains are given in domNames
-        dom = self.domains.get(domNames[0])
+        dom = self.domains.get(domainNames[0])
         if dom is None or len(dom) == 0:
-            raise Exception("Domain '%s' is empty!" % domNames[0])
+            raise Exception("Domain '%s' is empty!" % domainNames[0])
         for value in dom:
-            self._groundAtoms(cur + [value], predName, domNames[1:])
+            self._groundAtoms(cur + [value], predicateName, domainNames[1:])
      
     def _generateGroundAtoms(self, domain):        
         self.gndAtoms = {}
         self.gndBlockLookup = {}
         self.gndBlocks = {}
+        
         # create ground atoms
         atoms = []
         for predName, domNames in self.predicates.iteritems():
@@ -449,7 +466,12 @@ class MLN:
         # reverse lookup
         self.gndAtomsByIdx = dict([(g.idx,g) for g in self.gndAtoms.values()]) 
 
+
+
+    ## FIXME: this currently recurses itself until it eats all my memory
     def __createPossibleWorlds(self, values, idx, code, bit):
+        ## print len(self.gndAtoms)
+        ## 48
         if idx == len(self.gndAtoms):
             if code in self.worldCode2Index:
                 raise Exception("Too many possible worlds")
@@ -477,23 +499,28 @@ class MLN:
                 if v != None:
                     possible_settings = [v]
                     restricted = True
-                    
+        
         # check if setting the truth value for idx is critical for a block (which is the case when idx is the highest index in a block)
         if not restricted and idx in self.gndBlockLookup and POSSWORLDS_BLOCKING:
             block = self.gndBlocks[self.gndBlockLookup[idx]]
             if idx == max(block):
                 # count number of true values already set
+                print len(block)
                 nTrue, nFalse = 0, 0
                 for i in block:
                     if i < len(values): # i has already been set
                         if values[i]:
                             nTrue += 1
+                            
                 if nTrue >= 2: # violation, cannot continue
                     return
+                
                 if nTrue == 1: # already have a true value, must set current value to false
                     possible_settings.remove(True)
+                    
                 if nTrue == 0: # no true value yet, must set current value to true
                     possible_settings.remove(False)
+        
         # recursive descent
         for x in possible_settings:
             self.__createPossibleWorlds(values + [x], idx + 1, code + {True: bit, False: 0}[x], bit << 1)
@@ -501,6 +528,8 @@ class MLN:
     def _createPossibleWorlds(self):
         self.worldCode2Index = {}
         self.worlds = []
+        ### Calls the above function
+        ### and eats all my memory
         self.__createPossibleWorlds([], 0, 0, 1)
 
     # get the possible world with the given one-based world number
@@ -598,7 +627,7 @@ class MLN:
                 if self._isTrue(gndFormula, world["values"]):
                     weights.append(wts[gndFormula.idxFormula])
             exp_sum = math.exp(sum(weights))
-            total += exp_sum
+            total = exp_sum
             world["sum"] = exp_sum
             world["weights"] = weights
         self.partition_function = total
@@ -892,12 +921,15 @@ class MLN:
         db = f.read()
         f.close()
         db = stripComments(db)
+        
         # expand domains with db constants and save evidence
         evidence = {}
         for l in db.split("\n"):
             l = l.strip()
+            
             if l == "":
                 continue
+            
             # domain declaration
             if "{" in l:
                 domName, constants = parseDomDecl(l)
@@ -910,6 +942,7 @@ class MLN:
                 domNames = self.predicates[predName]
                 # save evidence
                 evidence["%s(%s)" % (predName, ",".join(constants))] = isTrue
+                
             # expand domains
             if len(domNames) != len(constants):
                 raise Exception("Ground atom %s in database %s has wrong number of parameters" % (l, dbfile))
@@ -919,6 +952,7 @@ class MLN:
                 d = domains[domNames[i]]
                 if constants[i] not in d:
                     d.append(constants[i])
+                    
         return (domains, evidence)
 
     # This method serves two purposes:
@@ -3053,6 +3087,7 @@ import FOL # import here so that cyclic import from RRF works and RRFMLN can be 
 if __name__ == '__main__':
     #sys.argv = [sys.argv[0], "test", "graph"]
     args = sys.argv[1:]
+    
     if len(args) == 0:
         print "\nMLNs in Python - helper tool\n\n  usage: mln.py <action> <params>\n\n"
         print "  actions: print <mln file>"
@@ -3074,6 +3109,7 @@ if __name__ == '__main__':
         print "              run the test with the given name (dev only)\n"
         print "  NOTE: This script exposes but a tiny fraction of the functionality of the MLN class!\n"
         sys.exit(0)
+        
     if args[0] == "print":
         mln = MLN(args[1])
         mln.write(sys.stdout)
@@ -3171,10 +3207,12 @@ if __name__ == '__main__':
             mln.combineDB("tinyk1symm.db")
             counts = mln.countTrueGroundingsForEachWorld(True)
             mln.printWorlds(format=2)
+            
         elif test == 'blockprob':
             mln = MLN("wts.pybpll.tinyk1-two.mln")
             mln.combineDB("tinyk1.db")
             mln.printBlockProbsMB()
+            
         elif test == 'learnwts':
             def learn(infile, mode, dbfile, startpt = False, rigidPreds = []):
                 mln = MLN(infile)    
@@ -3195,6 +3233,7 @@ if __name__ == '__main__':
                 fname = ("%s.py%s.%s" % (prefix, tag, infile[3:]))
                 mln.write(file(fname, "w"))
                 print "WROTE %s\n\n" % fname
+                
             #PMB_METHOD='excl'
             #POSSWORLDS_BLOCKING=True
             #DIFF_METHOD='blocking' #'simple'
@@ -3219,6 +3258,7 @@ if __name__ == '__main__':
             mln.infer("drinkType(D1,Tea)", "hasRank(Steve, Professor) ^ consumed(Steve,D1)")
             mln.infer("drinkType(D1,Coffee)", "hasRank(Steve, Professor) ^ consumed(Steve,D1)")
             mln.infer("hasRank(Steve,Student)", "drinkType(D1, Tea) ^ consumed(Steve,D1)")
+
         elif test == "Gibbs":
             def infer(what, given, gs):
                 gs.mln.infer(what, given)
@@ -3228,10 +3268,12 @@ if __name__ == '__main__':
             gs = GibbsSampler(mln)
             infer("hasRank(P,Student)", "consumed(P,D1) ^ drinkType(D1,Tea)", gs)
             infer("hasRank(P,Student)", None, gs)
+
         elif test == 'graph':
             mln = MLN("in.tiny-process2-noforcedrink.mln")
             mln.combine({"person": ["Steve", "Pete"], "drink": ["C1", "T1", "T2"]})
             mln.writeDotFile("test.dot")
+            
         elif test == "MCSAT":
             mln = MLN("wts.blog.meal_goods.mln", verbose=True)
             query = ("personT", "q3.db", 30)
@@ -3239,6 +3281,7 @@ if __name__ == '__main__':
             evidence = evidence2conjunction(mln.combineDB(query[1], verbose=True))
             mcsat = MCSAT(mln, verbose=True)
             mcsat.infer(query[0], evidence, debug=False, randomSeed=0, verbose=True, details=True, maxSteps=query[2], shortOutput=True)
+            
         elif test == 'profile_mcsat':
             mln = MLN("wts.blog.meal_goods.mln", verbose=True)
             query = ("personT", "q3.db")
@@ -3254,6 +3297,7 @@ if __name__ == '__main__':
             stats.sort_stats('cumulative')
             stats.print_stats()
             stats.print_callees()
+            
         elif test == 'profile_mcsat2':
             mln = MLN("meal_goods2/wts.meals1.mln", verbose=True)
             query = ("takesPartIn", "meal_goods2/new-1.db")
@@ -3269,11 +3313,13 @@ if __name__ == '__main__':
             stats.sort_stats('cumulative')
             stats.print_stats()
             stats.print_callees()
+            
         elif test == 'count_constraint':
             mln = MLN('test.mln')
             mln.combine({})
             mln.printGroundFormulas()
             mln.inferMCSAT("directs", infoInterval=1, details=True, maxSteps=1000, verbose=True, resultsInterval=1, debug=False, debugLevel=3)
+            
         elif test == "count_constraint2": # compare count constraint size to existential quantification
             mln = MLN('count_constraint_vs_exists.mln')
             mln.combine({})

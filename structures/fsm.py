@@ -113,7 +113,9 @@ class FSM:
         self.input_symbol = None
         self.counter = 0
 
-
+    def compare(self, object, other_object):
+        pass
+    
     def add_transition (self, input_symbol, state, action=None, next_state=None):
 
         """This adds a transition that associates:
@@ -129,6 +131,7 @@ class FSM:
 
         if next_state is None:
             next_state = state
+            
         self.state_transitions[(input_symbol, state)] = (action, next_state)
 
     def add_transition_list(self, list_input_symbols, state, action=None, next_state=None):

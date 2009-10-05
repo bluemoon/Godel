@@ -1,10 +1,36 @@
 from collections import deque
+
 class list_functions:
     def flatten(self, List):
         ### take a list of varied depth
         ### and flatten it! with no recursion
         return reduce(list.__add__, map(lambda x: list(x), [y for y in List]))
 
+
+    def uniqify(self, sequence): 
+        # order preserving
+         def id_(x):
+             if isinstance(x, tuple):
+                 x = ''.join(x)
+             if isinstance(x, list):
+                 x = ''.join(x)
+             if isinstance(x, dict):
+                 x = cPickle.dumps(x)
+             
+             return x
+             
+         seen   = {}
+         result = []
+         for item in sequence:
+             marker = id_(item)
+             if marker in seen:
+                 continue
+             
+             seen[marker] = True
+             result.append(item)
+             
+         return result
+     
     def print_list(self, List):
         stack = [(List, -1)]
         while stack:

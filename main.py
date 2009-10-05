@@ -1,5 +1,6 @@
 from optparse import OptionParser
 from settings import settings
+from utils.debug import *
 
 class main:
     def __init__(self):
@@ -32,7 +33,8 @@ class main:
             assert len(self.source) > 0, 'irc source is invalid.'
             
         elif self.options.source == 'sentence':
-            self.source = ['the quick brown fox jumps over the lazy dog.']
+            self.source = ['the quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
+                           'The man did not go to the market.', 'what color is the fox?']
             
         if self.options.engine == 'relex':
             from engines.relex import relex
@@ -40,6 +42,7 @@ class main:
             ## then process all of the sentences
             for sentences in self.source:
                 sentence = r.process(sentences)
+                #debug(sentence)
                 parsed = r.parse_output(sentence)
                 ## tie the original sentence with the parsed one
                 self.to_analyze.append((sentences, parsed))
