@@ -82,17 +82,8 @@ class relex_analysis:
             if self.options.graph:
                 hg.analysis()
             
-            seperate_tags = self.relex.seperate_tags(features)
-
-            ## triples = triple_ruleset(features, sentence[0])
-            ## prep = prep_ruleset(features, sentence[0], hg)
-            ## prep.PairUp()
+            #seperate_tags = self.relex.seperate_tags(features)
             
-            ## debug(triples.run_all())
-            
-            
-            #self.relex.analyze_frames(frames)
-            #self.analogies.similar(seperate_tags)
             cLambda.frames_in(frames)
             cLambda.features_in(features)
             cLambda.bind_set()

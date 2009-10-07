@@ -1,9 +1,9 @@
 #import networkx
 from structures.atoms import Atoms
-from triple_rules import prepositions
-from triple_rules import Triple
-from triple_rules import prep_ruleset
-from triple_rules import triple_ruleset
+from data.prepositions import prepositions
+from rules import Triple
+from rules import prep_ruleset
+from rules import triple_ruleset
 
 from utils.debug import *
 
@@ -64,7 +64,7 @@ class HG:
     def analysis(self):
         self.triple = Triple()
         
-        self.atoms.to_dot_file(primary_type='sentence')
+        #self.atoms.to_dot_file(primary_type='sentence')
         self.sentence_analyze()
         
     def sentence_analyze(self):
@@ -77,9 +77,11 @@ class HG:
             self.atoms.delete_edge_by_type('preposition')
 
         
-        self.atoms.to_dot_file(primary_type='sentence')
+        #self.atoms.to_dot_file(primary_type='sentence')
         
-        
+        triple = triple_ruleset(self.tokenized, self.atoms)
+        tri = triple.run_all()
+        debug(tri)
 
         
         

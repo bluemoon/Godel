@@ -577,7 +577,7 @@ class Atoms:
         #callgraph.write_dot('data/graphs/%f-current.dot' % time.time())
         #callgraph.write_png('data/graphs/%f-current.png' % time.time())
         
-        if primary_type:
+        if primary_type and primary_type in self.types:
             heads = []
             for x in self.types[primary_type]:
                 heads.append(x[0])
