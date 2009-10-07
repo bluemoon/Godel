@@ -1,13 +1,31 @@
 from collections import deque
-
 from data.prepositions import prepositions
 from utils.debug import *
+from rule_parser import parse
 
 import nltk
 
+string ="""
+(rule-0
+    (edge-type $prep preposition)
+    (m _subj $be   $var0)
+    (m $prep $var1 $var2)
+)
+
+"""
+print string
+print parse(string)
+    
+    
 #class NDFSM:
-    
-    
+
+## pseudo language
+## rule:
+##
+## (edge-type $prep preposition)
+## (m _subj $be $var0)
+## (m $prep $var1 $var2)
+
 class Triple:
     last_match = True
     groundings = {}
@@ -18,6 +36,7 @@ class Triple:
     stack = []
     output_stack = []
     preposition = None
+
     
     def __init__(self):
         self.groundings = {}
@@ -73,8 +92,6 @@ class Triple:
             results.append(matches[0])
             state = matches[1]
 
-        debug(results)
-
         ## match it outright
         if tag_list == results:
             if self.preposition:
@@ -127,7 +144,7 @@ class Triple:
                         for x in self.find_and_match(tag_list):
                             ## check for sanity's sake
                             if len(tag_list) > 0:
-                                tag, var_1, var_2 = tag_list.pop()
+                                tag, var_1, var_2 = tag_list.popleft()
                             else:
                                 return
                             #debug((tag, var_1, var_2))
