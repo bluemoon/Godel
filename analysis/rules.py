@@ -12,7 +12,7 @@ class Triple:
     current    = None
     hypergraph = None
     rule_fail  = False
-    
+    match_stack = []
     stack = []
     output_stack = []
     
@@ -57,29 +57,30 @@ class Triple:
         results = []
         stack   = []
         output  = []
-        
+
+        ## over-ride for other things failing
         if self.rule_fail:
             return False
         
-        for x in self.find_and_match(tag_list):
-            results.append(x)
+        for matches in self.find_and_match(tag_list):
+            ## match to list then append the output
+            ## find and match is a generator
+            results.append(matches)
 
         ## match it outright
         if tag_list == results:
-            debug(True)
             return (True, self.groundings)
 
         else:
             i = 0
             ## if the tags > output no go, misaligned lists
             if len(tag_list) > len(output):
-                print len(tag_list)
-                print len(output)
                 return False
             
             for x in tag_list:
                 print x
                 print results[i]
+                
                 if x == results[i]:
                     output.append(True)
                 else:
@@ -95,6 +96,8 @@ class Triple:
         
     def find_and_match(self, tag_list):
         tag_list = deque(tag_list)
+        
+        ## has to be a deque with something in it
         if tag_list:
             popped = tag_list.popleft()
             self.stack.append(popped)
@@ -104,20 +107,27 @@ class Triple:
                 ## find our matching tag
                 match = self.match_rule(tag, var_1, var_2)
                 if match:
-                    yield [tag, var_1, var_2, self.groundings]
+                    self.match_stack.append(self.groundings)
+                    yield [tag, var_1, var_2]
+
                     ## run with recursion after yield
                     for x in self.find_and_match(tag_list):
+                        ## i think i should be popping left
                         tag, var_1, var_2 = tag_list.pop()
+                        #debug((tag, var_1, var_2))
                         match = self.match_rule(tag, var_1, var_2)
+                        #debug(match)
                         if match:
+                            ## dump on the stack
                             self.stack.append((tag, var_1, var_2))
-                            yield [tag, var_1, var_2, self.groundings]
+                            self.match_stack.append(self.groundings)
+                            yield [tag, var_1, var_2]
                         else:
                             self.reset()
                             #return 
                 else:
                     self.reset()
-                    #yield False
+  
                     
                 
 
@@ -140,20 +150,15 @@ class Triple:
                     self.current = (head, tag[0], tail)
                     yield self.current
                 
-    def all_features(self):
-        features = []
-        
-        for x in self.hypergraph.edge_by_type('feature'):
-            features.append(x)
-            
-        return features
     
-    def match_rule(self, tag, var_1, var_2):        
+    def match_rule(self, tag, var_1, var_2):
+        ## check to see if we are ground and it is a var
         if self.is_variable(var_1) and self.is_ground(var_1):
             out = self.compare_ground(var_1, 0)
             if not out:
                 return False
             
+        ## otherwise we need to ground it
         elif self.is_variable(var_1) and not self.is_ground(var_1):
             self.ground_variable(var_1, self.current[0])
      
@@ -167,7 +172,8 @@ class Triple:
 
 
         if tag == '$prep':
-            return self.last_match
+            ## XXX: bad way of doing this
+            return True
         
         if self.is_variable(tag) and self.is_ground(tag):
             self.compare_ground(tag, 1)
@@ -202,7 +208,7 @@ class prep_ruleset(Triple):
             self.ground_variable('$be', 'be')
             if self.tag_match_list(value):
                 self.output_stack.append(key)
-            debug(self.groundings)
+            #debug(self.groundings)
             self.reset()
                 
         return self.output_stack
@@ -242,7 +248,7 @@ class triple_ruleset(Triple):
         for key, value in rules.items():
             self.ground_variable('$be', 'be')
             match_list = self.tag_match_list(value)
-            debug(match_list)
+            ## debug(match_list)
             if match_list:
                 self.output_stack.append((key, match_list[1]))
                 
