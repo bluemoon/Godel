@@ -28,7 +28,7 @@ class Stack:
         self.s=[]
 
     def empty(self):
-        if(len(self.s)>0):
+        if(len(self.s) > 0):
             return 0
         else:
             return 1
@@ -62,40 +62,47 @@ class Atoms:
         self.edges = {}
         self.hidden_edges = {}
         self.hidden_nodes = {}
+        self.edge_types = []
+        self.types = {}
 
 
-    #--Performs a copy of the graph, G, into self.
-    #--hidden edges and hidden nodes are not copied.
-    #--node_id's remain consistent across self and G, 
-    #--however edge_id's do not remain consistent.
-    #--Need to implement copy operator on node_data
-    #--and edge data.
+    
     def copy(self, G):
-        #--Blank self.
+        ## Performs a copy of the graph, G, into self.
+        ## hidden edges and hidden nodes are not copied.
+        ## node_id's remain consistent across self and G, 
+        ## however edge_id's do not remain consistent.
+        ## Need to implement copy operator on node_data
+        ## and edge data.
+        
         self.nodes = {}
         self.edges = {}
         self.hidden_edges = {}
         self.hidden_nodes = {}
         self.next_edge_id = 0
-        #--Copy nodes.
+        
+        ## Copy nodes.
         G_node_list = G.node_list()
         for G_node in G_node_list:
             self.add_node(G_node,G.node_data(G_node))
-        #--Copy edges.
+            
+        ## Copy edges.
         for G_node in G_node_list:
             out_edges = G.out_arcs(G_node)
             for edge in out_edges:
                 tail_id=G.tail(edge)
                 self.add_edge(G_node, tail_id, G.edge_data(edge))
 
-    #--Creates a new node with id node_id.  Arbitrary data can be attached
-    #--to the node via the node_data parameter.
-    def add_node(self, node_id, node_data=None, ignore_dupes=False):
+
+    def add_node(self, node_id, node_data=None, ignore_dupes=True):
+        ## Creates a new node with id node_id.  Arbitrary data can be attached
+        ## to the node via the node_data parameter.
         if (not self.nodes.has_key(node_id)) and (not self.hidden_nodes.has_key(node_id)):
             self.nodes[node_id]=([],[],node_data)
         else:
             if not ignore_dupes:
                 raise GraphException('Duplicate Node: %s', node_id)
+
 
     #--Deletes the node and all in and out arcs.
     def delete_node(self, node_id):
@@ -110,8 +117,10 @@ class Atoms:
         #--Delete node.
         del self.nodes[node_id]
 
-    #--Delets the edge.
+
+    
     def delete_edge(self, edge_id):
+        ## deletes the edge.
         head_id = self.head(edge_id)
         tail_id = self.tail(edge_id)
         head_data = map(None, self.nodes[head_id])
@@ -119,13 +128,63 @@ class Atoms:
         head_data[1].remove(edge_id)
         tail_data[0].remove(edge_id)
         del self.edges[edge_id]
+        
+    def delete_edge_by_type(self, edge_type):
+        if edge_type in self.types:
+            del self.types[edge_type]
+            
+    def with_merge(self, head_id, tail_id, edge_data, edge_type):
+         edge = self.edge(head_id, tail_id)
+         if edge != False:
+             cEdge_type = self.edges[edge][3]
+             if edge_type != edge_type:
+                 return
+             
+             current_edge_data = self.edges[edge][2]
+             if isinstance(current_edge_data, list):
+                 if isinstance(edge_data, list):
+                     for item in edge_data:
+                         current_edge_data.append(item)
+                 else:
+                     current_edge_data.append(item)
+             else:
+                 raise GraphException('ListError: no list found')
+             
+             return edge
 
-    #--Adds an edge (head_id, tail_id).
-    #--Arbitrary data can be attached to the edge via edge_data
-    def add_edge(self, head_id, tail_id, edge_data=None):
+         else:
+             return False
+                     
+                         
+    def add_edge(self, head_id, tail_id, edge_data=None, head_data=None,
+                 tail_data=None, edge_type=None, with_merge=False):
+        ## adds an edge (head_id, tail_id).
+        ## arbitrary data can be attached to the edge via edge_data
+        ## with_merge will merge the edge with another of of the same nodes and only add the data
         edge_id = self.next_edge_id
         self.next_edge_id = self.next_edge_id + 1
-        self.edges[edge_id] = (head_id, tail_id, edge_data)
+        
+        if with_merge and edge_data:
+           merged = self.with_merge(head_id, tail_id, edge_data, edge_type)
+           if merged != False:
+               return merged
+
+        if edge_type not in self.edge_types:
+            self.edge_types.append(edge_type)    
+            self.types[edge_type] = []
+
+        self.types[edge_type].append((head_id, edge_data, tail_id))
+            
+            
+        self.edges[edge_id] = (head_id, tail_id, edge_data, edge_type)
+
+        
+        if not self.nodes.has_key(head_id):
+            self.add_node(head_id, node_data=head_data)
+            
+        if not self.nodes.has_key(tail_id):
+            self.add_node(tail_id, node_data=tail_data)
+        
         try:
             mapped_head_data = map(None, self.nodes[head_id])
             mapped_head_data[1].append(edge_id)
@@ -140,34 +199,39 @@ class Atoms:
     #--its information.  The edge is held in a separate structure
     #--and can be unhidden at some later time.
     def hide_edge(self, edge_id):
-        self.hidden_edges[edge_id]=self.edges[edge_id]
-        ed=map(None, self.edges[edge_id])
-        head_id=ed[0]
-        tail_id=ed[1]
-        hd=map(None, self.nodes[head_id])
-        td=map(None, self.nodes[tail_id])
+        self.hidden_edges[edge_id] = self.edges[edge_id]
+        ed = map(None, self.edges[edge_id])
+        head_id = ed[0]
+        tail_id = ed[1]
+        hd = map(None, self.nodes[head_id])
+        td = map(None, self.nodes[tail_id])
         hd[1].remove(edge_id)
         td[0].remove(edge_id)
         del self.edges[edge_id]
 
-    #--Similar to above.
-    #--Stores a tuple of the node data, and the edges that are incident to and from
-    #--the node.  It also hides the incident edges.
+    ## Similar to above.
+    ## Stores a tuple of the node data, and the edges that are incident to and from
+    ## the node.  It also hides the incident edges.
     def hide_node(self, node_id):	    
         degree_list = self.arc_list(node_id)
         self.hidden_nodes[node_id] = (self.nodes[node_id],degree_list)
         for edge in degree_list:
             self.hide_edge(edge)
+            
         del self.nodes[node_id]
 
-    #--Restores a previously hidden edge back into the graph.
+    
     def restore_edge(self, edge_id):
+        ## Restores a previously hidden edge back into the graph.
         self.edges[edge_id] = self.hidden_edges[edge_id]
         ed = map(None,self.hidden_edges[edge_id])
+        
         head_id = ed[0]
         tail_id = ed[1]
+        
         hd=map(None,self.nodes[head_id])
         td=map(None,self.nodes[tail_id])
+
         hd[1].append(edge_id)
         td[0].append(edge_id)
         del self.hidden_edges[edge_id]
@@ -198,17 +262,28 @@ class Atoms:
     #--Returns 1 if the node_id is in the graph and 0 otherwise.
     def has_node(self, node_id):
         if self.nodes.has_key(node_id):
-            return 1
+            return True
         else:
-            return 0
+            return False
 
-    #--Returns the edge that connects (head_id,tail_id)
+    def node(self, node):
+        if not self.has_node(node):
+            return False
+        else:
+            return self.nodes[node]
+            
     def edge(self, head_id, tail_id):
-        out_edges=self.out_arcs(head_id)
+        ## returns the edge that connects (head_id,tail_id)
+        if not self.has_node(head_id):
+            return False
+        
+        out_edges = self.out_arcs(head_id)
         for edge in out_edges:
             if self.tail(edge) == tail_id:
                 return edge
-        raise 'Graph_no_edge', (head_id, tail_id)
+        
+        #raise 'Graph_no_edge', (head_id, tail_id)
+        return False
         #print "WARNING: No edge to return."
         
     def neighbors(self, node_id):
@@ -223,7 +298,7 @@ class Atoms:
     #--Return a list of the node id's of all visible nodes in the graph.
     def node_list(self):
         nl = self.nodes.keys()
-        return nl[:]	
+        return nl[:]
 
     #--Similar to above.
     def edge_list(self):
@@ -244,20 +319,55 @@ class Atoms:
         hel=self.hidden_edges.keys()
         return hel[:]
 
+    def node_out_edges(self, node):
+        if self.has_node(node):
+            out_arcs = self.out_arcs(node)
+            for arc in out_arcs:
+                edge_data = self.edge_data(arc)
+                edge_type = self.edge_type(arc)
+                head = self.head(arc)
+                tail = self.tail(arc)
+                yield (arc, edge_data, head, tail, edge_type)
+
+    def node_in_edges(self, node):
+        if self.has_node(node):
+            in_arcs = self.in_arcs(node)
+            for arc in in_arcs:
+                edge_data = self.edge_data(arc)
+                head = self.head(arc)
+                tail = self.tail(arc)
+                yield (arc, edge_data, head, tail)
+
+            
     #--Returns a reference to the data attached to a node.
     def node_data(self, node_id):
-        mapped_data=map(None, self.nodes[node_id])
-        return mapped_data[2]
+        if self.has_node(node_id):
+            mapped_data=map(None, self.nodes[node_id])
+            return mapped_data[2]
+        else:
+            return False
+        
 
-    #--Returns a reference to the data attached to an edge.
+    
     def edge_data(self, edge_id):
-        mapped_data=map(None, self.edges[edge_id])
+        ## Returns a reference to the data attached to an edge.
+        mapped_data = map(None, self.edges[edge_id])
         return mapped_data[2]
+    
+    def edge_type(self, edge_id):
+        mapped_data = map(None, self.edges[edge_id])
+        return mapped_data[3]
+    
+    def edge_by_type(self, cType):
+        if cType in self.types:
+            for eachType in self.types[cType]:
+                yield eachType
+                
 
     #--Returns a reference to the head of the edge.  (A reference to the head id)
     def head(self, edge):
         mapped_data = map(None, self.edges[edge])
-        return mapped_data[0]	
+        return mapped_data[0]
 
     #--Similar to above.
     def tail(self, edge):
@@ -267,7 +377,7 @@ class Atoms:
     #--Returns a copy of the list of edges of the node's out arcs.
     def out_arcs(self, node_id):
         mapped_data = map(None, self.nodes[node_id])
-        return mapped_data[1][:]	
+        return mapped_data[1][:]
 
     #--Similar to above.
     def in_arcs(self, node_id):
@@ -279,11 +389,13 @@ class Atoms:
             for y in self.out_arcs(node_id):
                 yield (x,y)
         
-    #--Returns a list of in and out arcs.
+    
     def arc_list(self, node_id):
+        ## Returns a list of in and out arcs.
         in_list  = self.in_arcs(node_id)
         out_list = self.out_arcs(node_id)
         deg_list = []
+        
         for arc in in_list:
             deg_list.append(arc)
         for arc in out_list:
@@ -321,7 +433,7 @@ class Atoms:
             if indeg == 0:
                 topological_queue.add(node)
             else:
-                indeg_nodes[node]=indeg
+                indeg_nodes[node] = indeg
         while not topological_queue.empty():
             current_node = topological_queue.remove()
             topological_list.append(current_node)
@@ -420,3 +532,63 @@ class Atoms:
                     bfs_queue.add(self.head(edge))
 
         return bfs_list
+
+    def to_dot_file(self, primary_type=None, exclude_filter=None):
+        import pydot
+        import time
+        import cPickle
+        import hashlib
+        import os
+        
+        self_hash = hashlib.sha224(cPickle.dumps(self)).hexdigest()
+
+        unique_colors = ['skyblue1','maroon1','yellowgreen','olivedrab3','red3','royalblue3',]
+        unique_color_dict = {}
+        
+        callgraph = pydot.Dot(graph_type='digraph', fontname="Verdana", fontsize="9")
+        node_list = self.nodes.keys()
+
+        for types in self.edge_types:
+            color = unique_colors.pop()
+            unique_color_dict[types] = color
+            
+        for node in node_list:
+            for edge in self.node_out_edges(node):
+                edge_type = edge[4]
+                color = unique_color_dict[edge_type]
+                
+                if len(edge[1]) == 1:
+                    label = str(edge[1][0])
+                else:
+                    label = ','.join(edge[1])
+                        
+                if primary_type != None and edge_type == primary_type:
+                    head = pydot.Node(edge[2], shape='doublecircle')
+                    tail = pydot.Node(edge[3], shape='doublecircle')
+                    callgraph.add_node(head)
+                    callgraph.add_node(tail)
+                        
+                    current_edge = pydot.Edge(edge[2], edge[3], label=label, color=color, weight="3", fontsize="8")
+                else:
+                    current_edge = pydot.Edge(edge[2], edge[3], label=label, color=color, fontsize="8")
+
+                callgraph.add_edge(current_edge)
+
+        #callgraph.write_dot('data/graphs/%f-current.dot' % time.time())
+        #callgraph.write_png('data/graphs/%f-current.png' % time.time())
+        
+        if primary_type:
+            heads = []
+            for x in self.types[primary_type]:
+                heads.append(x[0])
+            sentence = '-'.join(heads)
+            file_name = '%s-%s' % (sentence, self_hash)
+        else:
+            file_name = self_hash
+            
+        file = os.path.join('data/graphs', '%s-map.svg' % file_name)
+        if not os.path.exists(file):
+            callgraph.write_svg(file)
+
+        print 'Graph: %s' % (file)
+

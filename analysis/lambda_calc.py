@@ -124,17 +124,18 @@ class Lambda_calc:
             LW.idx = word.idx
             
             self.lambda_set.append(LW)
-            debug(LW)
+            #debug(LW)
 
     def features_in(self, features):
-        debug(features)
+        #debug(features)
+        pass
         
     def frames_in(self, frames):
         frames = self.list_functions.uniqify(frames)
     
         for frame in frames:
             f_dict = {}
-            debug(frame)
+            #debug(frame)
             
             f_dict['number']      = frame[0]
             f_dict['concept']     = frame[1]
@@ -192,9 +193,9 @@ class Bindings:
         referrers = []
         
         lambda_item, referents = word_data
-        debug(lambda_item.word)
-        debug(lambda_item.POS)
-        debug(referents)
+        #debug(lambda_item.word)
+        #debug(lambda_item.POS)
+        #debug(referents)
 
 
         for r in referents:
@@ -215,11 +216,11 @@ class Bindings:
         to_print = ', '.join(referrers)
         debug_string =  'Predicate logic: %s_%s(%s)' % (lambda_item.word, lambda_item.POS, to_print)
         
-        debug(debug_string)
+        #debug(debug_string)
         #debug_string = 'Boxer Style: %s(%d)' % (lambda_item.idx, )
 
         self.bindings = self.list_functions.uniqify(self.bindings)
-        debug(self.bindings)
+        #debug(self.bindings)
 
 
 

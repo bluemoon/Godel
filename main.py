@@ -16,6 +16,9 @@ class main:
         self.parser.add_option("--engine", dest="engine", default=default_engine)
         self.parser.add_option("--source", dest="source", default=default_source)
         self.parser.add_option("--analysis", dest="analysis", default=default_analysis)
+        self.parser.add_option("--without-graph", action="store_false", dest="graph", default=True)
+        self.parser.add_option("--with-graph-frame", action="store_true", dest="graph_frame", default=False)
+        self.parser.add_option("--with-graph-tags", action="store_false", dest="graph_tags", default=True)
         
         (self.options, self.args) = self.parser.parse_args()
         
@@ -34,7 +37,7 @@ class main:
             
         elif self.options.source == 'sentence':
             self.source = ['the quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
-                           'The man did not go to the market.', 'what color is the fox?']
+                           'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.']
             
         if self.options.engine == 'relex':
             from engines.relex import relex
@@ -51,7 +54,7 @@ class main:
             assert len(self.to_analyze) > 0, 'nothing to analyze.'
             
             from analysis.analysis import relex_analysis
-            r = relex_analysis()
+            r = relex_analysis(self.options)
             r.analyze(self.to_analyze)
             
             
