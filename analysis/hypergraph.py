@@ -21,16 +21,9 @@ class HG:
             #self.atoms.add_node(token, node_data=idx)
             head = token #'%d_%s' % (idx, token)
             tail = self.tokenized[idx+1] #'%d_%s' % (idx+1, self.tokenized[idx+1])
-            
             self.atoms.add_edge(head, tail, edge_data=[idx], head_data=[idx],
                                 tail_data=[idx+1], with_merge=True, edge_type='sentence')
 
-            if token in prepositions:
-                prep_idx = prepositions.index(token)
-                self.atoms.add_edge(self.tokenized[idx-1], self.tokenized[idx+1],
-                                    edge_data=[prepositions[prep_idx]],
-                                    with_merge=False, edge_type='preposition')
-                self.prep_count += 1
                 
         #self.atoms.add_node(self.tokenized[-1], node_data=len(self.tokenized)+1)
 
@@ -73,11 +66,29 @@ class HG:
         debug(self.tokenized)
         debug(prep)
 
+        
         if len(prep) < 1:
             self.atoms.delete_edge_by_type('preposition')
 
-        
-        #self.atoms.to_dot_file(primary_type='sentence')
+        for x in prep:
+            var_1 = x[1]['$var1']
+            var_2 = x[1]['$var2']
+            
+            debug((var_1, var_2))
+            #between = self.atoms.find_between(var_1, var_2, edge_type='sentence')
+            
+            #for prep in prepositions:
+            #    if prep in between:
+            #triple = '_'.join([var_1,prep])
+            #debug(triple)
+            #self.atoms.add_node(triple, node_data='preposition')
+            self.atoms.add_edge(var_1, var_2, edge_data=[],
+                                edge_type='preposition', with_merge=False)
+
+                    
+                
+                
+        self.atoms.to_dot_file(primary_type='sentence')
         
         triple = triple_ruleset(self.tokenized, self.atoms)
         tri = triple.run_all()

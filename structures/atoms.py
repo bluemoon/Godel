@@ -417,7 +417,31 @@ class Atoms:
 
     def is_cyclic(self):
         pass
-    
+
+    def find_between(self, head, tail, edge_type=None):
+        nodes_already_queued={head:0}
+        bfs_list  = []
+        bfs_queue = deque()
+        bfs_queue.append(head)	
+        
+        while bfs_queue:
+            current_node = bfs_queue.popleft()
+            bfs_list.append(current_node)
+            out_edges = self.out_arcs(current_node)
+            for edge in out_edges:
+                if edge_type:
+                    if self.edges[edge][3] != edge_type:
+                        continue
+                        
+                if tail == self.tail(edge):
+                    break
+                
+                if not nodes_already_queued.has_key(self.tail(edge)):
+                    nodes_already_queued[self.tail(edge)]=0
+                    bfs_queue.append(self.tail(edge))
+                    
+        return bfs_list
+        
     # --- Traversals ---
 
     #--Performs a topological sort of the nodes by "removing" nodes with indegree 0.

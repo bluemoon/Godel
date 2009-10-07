@@ -1,6 +1,8 @@
 from collections import deque
 
+from data.prepositions import prepositions
 from utils.debug import *
+
 import nltk
 
 #class NDFSM:
@@ -15,12 +17,14 @@ class Triple:
     match_stack = []
     stack = []
     output_stack = []
+    preposition = None
     
     def __init__(self):
         self.groundings = {}
         self.current = None
         self.stack   = []
         self.rule_fail = False
+        self.proposition = None
         
     def reset(self):
         ## reset the groundings
@@ -55,6 +59,7 @@ class Triple:
 
     def tag_match_list(self, tag_list):
         results = []
+        state   = None
         stack   = []
         output  = []
 
@@ -65,11 +70,17 @@ class Triple:
         for matches in self.find_and_match(tag_list):
             ## match to list then append the output
             ## find and match is a generator
-            results.append(matches)
+            results.append(matches[0])
+            state = matches[1]
+
+        debug(results)
 
         ## match it outright
         if tag_list == results:
-            return (True, self.groundings)
+            if self.preposition:
+                return (True, state, self.preposition)
+            else:
+                return (True, state)
 
         else:
             i = 0
@@ -77,6 +88,7 @@ class Triple:
             if len(tag_list) > len(output):
                 return False
             
+            ## FIXME: i need to fix this, so it works/doesnt suck
             for x in tag_list:
                 print x
                 print results[i]
@@ -104,47 +116,61 @@ class Triple:
             ## pop off the tag list onto the stack
             tag, var_1, var_2 = self.stack[-1]
             for x in self.find_next(tag):
-                ## find our matching tag
-                match = self.match_rule(tag, var_1, var_2)
-                if match:
-                    self.match_stack.append(self.groundings)
-                    yield [tag, var_1, var_2]
+                if x:
+                    ## find our matching tag
+                    match = self.match_rule(tag, var_1, var_2)
+                    if match:
+                        self.match_stack.append(self.groundings)
+                        yield ([tag, var_1, var_2], self.groundings)
 
-                    ## run with recursion after yield
-                    for x in self.find_and_match(tag_list):
-                        ## i think i should be popping left
-                        tag, var_1, var_2 = tag_list.pop()
-                        #debug((tag, var_1, var_2))
-                        match = self.match_rule(tag, var_1, var_2)
-                        #debug(match)
-                        if match:
+                        ## run with recursion after yield
+                        for x in self.find_and_match(tag_list):
+                            ## check for sanity's sake
+                            if len(tag_list) > 0:
+                                tag, var_1, var_2 = tag_list.pop()
+                            else:
+                                return
+                            #debug((tag, var_1, var_2))
+                            match = self.match_rule(tag, var_1, var_2)
+                            #debug(match)
+                            if match:
                             ## dump on the stack
-                            self.stack.append((tag, var_1, var_2))
-                            self.match_stack.append(self.groundings)
-                            yield [tag, var_1, var_2]
-                        else:
-                            self.reset()
+                                self.stack.append((tag, var_1, var_2))
+                                self.match_stack.append(self.groundings)
+                                yield ([tag, var_1, var_2], self.groundings)
+                            else:
+                                self.reset()
                             #return 
-                else:
-                    self.reset()
+                    else:
+                        self.reset()
   
                     
-                
-
-        
     def find_next(self, tag):
         if tag == '$prep':
-            for x in self.hypergraph.edge_by_type('preposition'):
+            for x in self.hypergraph.edge_by_type('feature'):
                 head, tag, tail = x
-                self.current = (head, tag[0], tail)
-                yield self.current
-
+                edge_data = tag[0]
+                
+                for preps in prepositions:
+                    if edge_data in prepositions:
+                        self.preposition = preps
+                        yield (head, edge_data, tail)
+            
+            yield False            
+            return
+                        
+                
         for x in self.hypergraph.edge_by_type('feature'):
             if not isinstance(tag, list):
                 if tag.startswith('!') and x[1][0] == tag[1:]:
                     self.rule_fail = True
                     yield False
-                
+                    
+                elif tag.startswith('$'):
+                    head, tag, tail = x
+                    self.current = (head, tag[0], tail)
+                    yield self.current
+                    
                 elif x[1][0] == tag:
                     head, tag, tail = x
                     self.current = (head, tag[0], tail)
@@ -169,7 +195,6 @@ class Triple:
             
         elif self.is_variable(var_2) and not self.is_ground(var_2):
             self.ground_variable(var_2, self.current[2])
-
 
         if tag == '$prep':
             ## XXX: bad way of doing this
@@ -206,8 +231,10 @@ class prep_ruleset(Triple):
         }
         for key, value in rules.items():
             self.ground_variable('$be', 'be')
-            if self.tag_match_list(value):
-                self.output_stack.append(key)
+            match_list = self.tag_match_list(value)
+            if match_list:
+                self.output_stack.append((key, match_list[1]))
+                
             #debug(self.groundings)
             self.reset()
                 
