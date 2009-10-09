@@ -35,6 +35,11 @@ sexp = Forward()
 sexpList = Group(LPAR + ZeroOrMore(sexp) + RPAR)
 sexp << ( string_ | sexpList )
 
+def parse_file(file):
+    f_handle = open(file, 'r')
+    f_text = f_handle.read()
+    sexpr = sexp.parseString(f_text)
+    return sexpr
 
 def parse(string):
     sexpr = sexp.parseString(string)

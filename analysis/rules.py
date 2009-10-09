@@ -2,6 +2,7 @@ from collections import deque
 from data.prepositions import prepositions
 from utils.debug import *
 from rule_parser import parse
+from rule_parser import parse_file
 
 import nltk
 
@@ -13,18 +14,9 @@ string ="""
 )
 
 """
-print string
-print parse(string)
-    
-    
-#class NDFSM:
 
-## pseudo language
-## rule:
-##
-## (edge-type $prep preposition)
-## (m _subj $be $var0)
-## (m $prep $var1 $var2)
+prep_rules = parse_file('data/prep-rules.scm')
+
 
 class Triple:
     last_match = True
@@ -36,7 +28,6 @@ class Triple:
     stack = []
     output_stack = []
     preposition = None
-
     
     def __init__(self):
         self.groundings = {}
