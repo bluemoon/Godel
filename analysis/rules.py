@@ -3,20 +3,28 @@ from data.prepositions import prepositions
 from utils.debug import *
 from rule_parser import parse
 from rule_parser import parse_file
+from rule_engine import rule_engine
 
 import nltk
 
-string ="""
-(rule-0
-    (edge-type $prep preposition)
-    (m _subj $be   $var0)
-    (m $prep $var1 $var2)
-)
 
-"""
+PREP_RULES = 'data/prep-rules.scm'
+prep_rules = parse_file(PREP_RULES)
 
-prep_rules = parse_file('data/prep-rules.scm')
+class rules:
+    def __init__(self):
+        self.rule_engine = rule_engine()
+        self.prep_rules = prep_rules
 
+        
+    def run_rules(self):
+        prep_list = self.prep_rules.asList()
+
+        for x in self.rule_engine.parse_rules(prep_list):
+            debug(x)
+            
+            
+        
 
 class Triple:
     last_match = True

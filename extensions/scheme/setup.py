@@ -10,5 +10,4 @@ module1 = Extension('scheme',
 setup (name = 'scheme',
        version = '1.0',
        description = 'This is a demo package',
-       
        ext_modules = [module1])

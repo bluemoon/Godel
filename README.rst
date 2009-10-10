@@ -1,3 +1,9 @@
+Requirements
+============
+NLTK
+clips
+pyClips
+
 
 License
 =======

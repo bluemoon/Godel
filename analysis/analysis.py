@@ -84,9 +84,9 @@ class relex_analysis:
             
             #seperate_tags = self.relex.seperate_tags(features)
             
-            cLambda.frames_in(frames)
-            cLambda.features_in(features)
-            cLambda.bind_set()
+            ## cLambda.frames_in(frames)
+            ## cLambda.features_in(features)
+            ## cLambda.bind_set()
             
             self.generate_mlnFile(frames, sentence)
 

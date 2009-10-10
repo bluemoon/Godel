@@ -1,9 +1,7 @@
 #import networkx
 from structures.atoms import Atoms
 from data.prepositions import prepositions
-from rules import Triple
-from rules import prep_ruleset
-from rules import triple_ruleset
+from rule_engine import rule_engine
 
 from utils.debug import *
 
@@ -55,44 +53,36 @@ class HG:
                                        with_merge=False)
             
     def analysis(self):
-        self.triple = Triple()
-        
         #self.atoms.to_dot_file(primary_type='sentence')
         self.sentence_analyze()
         
     def sentence_analyze(self):
-        prep_rules = prep_ruleset(self.tokenized, self.atoms)
-        prep = prep_rules.run_rules()
-        debug(self.tokenized)
-        debug(prep)
-
+        rule = rule_engine(self.atoms)
+        rule.setup_clips()
+        rule.run_rules()
         
-        if len(prep) < 1:
-            self.atoms.delete_edge_by_type('preposition')
+        #debug(self.tokenized)
+        
+        #if len(prep) < 1:
+        #    self.atoms.delete_edge_by_type('preposition')
 
-        for x in prep:
-            var_1 = x[1]['$var1']
-            var_2 = x[1]['$var2']
-            
-            debug((var_1, var_2))
-            #between = self.atoms.find_between(var_1, var_2, edge_type='sentence')
-            
-            #for prep in prepositions:
-            #    if prep in between:
-            #triple = '_'.join([var_1,prep])
-            #debug(triple)
-            #self.atoms.add_node(triple, node_data='preposition')
-            self.atoms.add_edge(var_1, var_2, edge_data=[],
-                                edge_type='preposition', with_merge=False)
+        #for x in prep:
+        #    var_1 = x[1]['$var1']
+        #    var_2 = x[1]['$var2']
+        #    
+        #    debug((var_1, var_2))
+        #    self.atoms.add_edge(var_1, var_2, edge_data=[],
+        #                        edge_type='preposition', with_merge=False)
 
                     
                 
                 
         self.atoms.to_dot_file(primary_type='sentence')
+
         
-        triple = triple_ruleset(self.tokenized, self.atoms)
-        tri = triple.run_all()
-        debug(tri)
+        #triple = triple_ruleset(self.tokenized, self.atoms)
+        #tri = triple.run_all()
+        #debug(tri)
 
         
         
