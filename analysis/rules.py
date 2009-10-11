@@ -194,6 +194,7 @@ class Triple:
                 
     
     def match_rule(self, tag, var_1, var_2):
+        debug([tag, var_1, var_2])
         ## check to see if we are ground and it is a var
         if self.is_variable(var_1) and self.is_ground(var_1):
             out = self.compare_ground(var_1, 0)

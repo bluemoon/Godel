@@ -119,6 +119,7 @@ class rule_engine:
         return False
     
     def compareRule(self, tag, var_1, var_2):
+        debug([tag, var_1, var_2])
         ## check to see if we are ground and it is a var
         if self.isVariable(var_1) and self.isGround(var_1):
             out = self.compareGround(var_1, 0)
@@ -192,12 +193,13 @@ class rule_engine:
             self.stack.append(popped)
             ## pop off the tag list onto the stack
             tag, var_1, var_2 = self.stack[-1]
-            
+
             ## find the next matching tag
             for x in self.find_next(tag):
                 if x:
                     ## find our matching tag
                     match = self.compareRule(tag, var_1, var_2)
+                    debug(match)
                     if match:
                         ## self.match_stack.append(self.groundings)
                         yield ([tag, var_1, var_2], self.Groundings)
@@ -209,6 +211,7 @@ class rule_engine:
                                 tag, var_1, var_2 = rule_set.popleft()
                             else:
                                 return
+                            
                             #debug((tag, var_1, var_2))
                             match = self.matchRule(tag, var_1, var_2)
                             #debug(match)
