@@ -106,7 +106,7 @@ class rule_tools:
         self.types = {}        
         self.tag_stack   = tag_stack
         self.state_stack = state_stack
-        
+
     def reset(self):
         ## reset the groundings
         del self.groundings
@@ -150,7 +150,6 @@ class rule_tools:
             if [m1, m2, m3] == item:
                 self.state_stack.append((idx, [m1, m2, m3]))
                 return True
-            
         return False
     
 
