@@ -39,7 +39,6 @@ class rule_engine:
         
         self.matchRule(test_rule)
 
-        
     def reset(self):
         ## reset the groundings
         del self.Groundings
