@@ -16,9 +16,8 @@ class HG:
         self.useful = []
         
         for idx, token in enumerate(self.tokenized[:-1]):
-            #self.atoms.add_node(token, node_data=idx)
-            head = token #'%d_%s' % (idx, token)
-            tail = self.tokenized[idx+1] #'%d_%s' % (idx+1, self.tokenized[idx+1])
+            head = token
+            tail = self.tokenized[idx+1]
             self.atoms.add_edge(head, tail, edge_data=[idx], head_data=[idx],
                                 tail_data=[idx+1], with_merge=True, edge_type='sentence')
 
@@ -55,6 +54,7 @@ class HG:
             
             tag_type = self.characterize_tag(tag)
             edge_type = (tag_type != None and tag_type or 'feature')
+            ## debug(edge_type)
             
             edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
                                        with_merge=False)

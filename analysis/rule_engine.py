@@ -21,13 +21,24 @@ class rule_engine:
     def run_rules(self):
         #self.parse_rulefile('')
         self.test_rule_parser()
-
+        self.test_prep_rule()
+        
     def test_rule_parser(self):
         self.setType('$prep', 'preposition')
         self.ground_variable('$be', 'be')
         test_rule = [['_obj','$be','$var1'], ['$prep','$var1','$var2']]
         
         self.matchRule(test_rule)
+
+        self.reset()
+
+    def test_prep_rule(self):
+        self.setType('$prep', 'preposition')
+        self.ground_variable('$be', 'be')
+        test_rule = [['$prep','$var1','$var2']]
+        
+        self.matchRule(test_rule)
+
         
     def reset(self):
         ## reset the groundings
@@ -86,13 +97,12 @@ class rule_engine:
             state = matches[1]
 
         debug(results)
+        debug(state)
         
         ## match it outright
         if rule_set == results:
-            if self.preposition:
-                return (True, state, self.preposition)
-            else:
-                return (True, state)
+            return (True, state)
+            
 
         else:
             i = 0
@@ -102,9 +112,6 @@ class rule_engine:
             
             ## FIXME: i need to fix this, so it works/doesnt suck
             for x in tag_list:
-                print x
-                print results[i]
-                
                 if x == results[i]:
                     output.append(True)
                 else:
@@ -116,6 +123,7 @@ class rule_engine:
                 return False
             else:
                 return True
+            
         return False
     
     def compareRule(self, tag, var_1, var_2):
@@ -137,7 +145,7 @@ class rule_engine:
             
         elif self.isVariable(var_2) and not self.isGround(var_2):
             self.ground_variable(var_2, self.current[2])
-
+            
         if tag == '$prep':
             ## XXX: bad way of doing this
             return True
@@ -147,19 +155,18 @@ class rule_engine:
                 
         elif self.isVariable(var_2) and not self.isGround(var_2):
             self.ground_variable(tag, self.current[1])
-            
+        
         return True
     
     def find_next(self, tag):
-        ## change this to istype and isvariable
         if self.isType(tag):
             tagType = self.getType(tag)
             ## dont play with a loaded gun
             if self.hypergraph.has_edge_type(tagType):
-                debug(tagType)
                 for x in self.hypergraph.edge_by_type(tagType):
                     head, tag, tail = x
                     edge_data = tag[0]
+                    self.current = (head, edge_data, tail)
                     yield (head, edge_data, tail)
             else:
                 yield False            
@@ -199,7 +206,6 @@ class rule_engine:
                 if x:
                     ## find our matching tag
                     match = self.compareRule(tag, var_1, var_2)
-                    debug(match)
                     if match:
                         ## self.match_stack.append(self.groundings)
                         yield ([tag, var_1, var_2], self.Groundings)
