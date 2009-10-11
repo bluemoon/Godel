@@ -4,9 +4,9 @@ from utils.debug import *
 from relex_analysis import relex_analyze
 from structures.containers import word
 from processing.tagger import tagger
-from lambda_calc import Lambda_calc
 from hypergraph import HG
 
+from rule_engine import rule_engine
 
 import nltk
 
@@ -65,6 +65,7 @@ class relex_analysis:
             ## per sentence instances
             cLambda = Lambda_calc()
             hg = HG(sentence)
+
             
             word_set = self.each_word(sentence)
             cLambda.wordSet_to_lambdaSet(word_set)
@@ -81,7 +82,8 @@ class relex_analysis:
             
             if self.options.graph:
                 hg.analysis()
-            
+
+            RE = rule_engine(features, hg.get_hypergraph())
             #seperate_tags = self.relex.seperate_tags(features)
             
             ## cLambda.frames_in(frames)

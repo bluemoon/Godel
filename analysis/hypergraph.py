@@ -25,6 +25,8 @@ class HG:
                 
         #self.atoms.add_node(self.tokenized[-1], node_data=len(self.tokenized)+1)
 
+    def get_hypergraph(self):
+        return self.atoms
     
     def word_position(self, search_word):
         tokens = nltk.word_tokenize(self.sentence[0])

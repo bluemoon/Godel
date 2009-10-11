@@ -7,10 +7,10 @@ import uuid
 import os
 
 class rule_engine:
-    def __init__(self, hypergraph):
+    def __init__(self, tag_stack, hypergraph):
         self.clips = CLIPS()
         
-        self.tag_stack   = []
+        self.tag_stack   = tag_stack
         self.state_stack = []
         
         self.hypergraph  = hypergraph
@@ -22,25 +22,40 @@ class rule_engine:
         self.setup_callbacks()
         
     def setup_callbacks(self):
-                
-        #self.clips.add_callback(self.rule_tools.match, "m", from_class=True)
+        self.clips.add_callback(self.rule_tools.match, "m", from_class=True)
         self.clips.add_callback(self.rule_tools.set_type, "set-type", from_class=True)
-          
-    def run_rules(self):
+        
+    def get_rule(self):
         rule_directory = 'analysis/'
-        rule_set = ['prep_rules.clips']#, 'triple_rules.clips']
-
+        rule_set = ['prep_rules.clips']
         env = self.clips.get_enviroment()
-        env.Assert('(m _obj word1 word2)')
         
         for rule_file in rule_set:
+            ## load up the file
             rule_f = os.path.join(rule_directory, rule_file)
             f_handle = open(rule_f, 'r')
             text = f_handle.read()   
+            ## then build the ruleset
             env.Build(text)
+            ## close the file
             f_handle.close()
 
+        
+            
+    def run_rules(self):
+        env = self.clips.get_enviroment()
+        self.get_rule()
+        
+        ## we need to set the first word here...
+        ## env.Assert('(m _obj word1 word2)')
+        for tag in self.rule_tools.tag_next():
+            debug(tag)
+            
+
+        ## run our enviroment
         env.Run()
+        
+        ## purely for debugging
         env.PrintFacts()
         env.PrintRules()
 
@@ -56,7 +71,7 @@ class CLIPS:
         self.enviroment = clips.Environment()
         clips.RegisterPythonFunction(self.enviroment_callback, 'env-call-specific-func')
         clips.DebugConfig.ActivationsWatched = True
-
+        
     def get_enviroment(self):
         return self.enviroment
     
@@ -101,9 +116,10 @@ class CLIPS:
 class rule_tools:
     def __init__(self, hypergraph, tag_stack, state_stack, clips):
         self.groundings = {}
-        self.stack   = []
+        self.stack = []
         self.clips = clips
-        self.types = {}        
+        self.types = {}
+        
         self.tag_stack   = tag_stack
         self.state_stack = state_stack
 
@@ -138,18 +154,30 @@ class rule_tools:
         ## ground a specific variable
         self.groundings[variable] = ground
 
+    def tag_next(self):
+        for idx,tag in enumerate(self.tag_stack):
+            yield (idx, tag)
+            
     def set_type(self, variable, type):
         return variable
 
     def match(self, m1, m2, m3):
         ## i dont know how i should do the searching with clips
         ## maybe something like match rule then use the python function
-        ## to generate the next word assertion
+        ## to generate the next word assertion the problem is that i dont
+        ## know what the next one will be
 
+        ## so the first one will be <tag, word1, word2>
+        ## but then i dont know what the next one will be
+        ## i can easily find n+1
+        enviroment = self.clips.get_enviroment()
+        
         for idx, item in enumerate(self.tag_stack):
             if [m1, m2, m3] == item:
                 self.state_stack.append((idx, [m1, m2, m3]))
+                enviroment.Assert('(m %s %s %s)' % (m1, m2, m3))
                 return True
+            
         return False
     
 
