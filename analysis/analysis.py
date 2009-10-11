@@ -63,7 +63,6 @@ class relex_analysis:
     def analyze(self, sentences):
         for sentence in sentences:
             ## per sentence instances
-            cLambda = Lambda_calc()
             hg = HG(sentence)
 
             
@@ -89,9 +88,6 @@ class relex_analysis:
 
             #seperate_tags = self.relex.seperate_tags(features)
             
-            ## cLambda.frames_in(frames)
-            ## cLambda.features_in(features)
-            ## cLambda.bind_set()
             
             self.generate_mlnFile(frames, sentence)
 
