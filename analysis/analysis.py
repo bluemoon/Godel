@@ -71,7 +71,10 @@ class relex_analysis:
             
             features = self.relex.parse_features(sentence)
             frames   = self.relex.parse_frames(sentence)
-            #self.dump_to_file((features, frames))
+
+            ## this will be for analysis
+            if False:
+                self.dump_to_file((features, frames))
             
             if self.options.graph_tags:
                 hg.features_in(features)
@@ -86,9 +89,6 @@ class relex_analysis:
             RE.setup_clips()
             RE.run_rules()
 
-            #seperate_tags = self.relex.seperate_tags(features)
-            
-            
             self.generate_mlnFile(frames, sentence)
 
     def generate_mlnFile(self, in_data, sentence):
