@@ -15,7 +15,7 @@ class rule_engine:
         
         self.hypergraph  = hypergraph
         
-        self.rule_tools = rule_tools(self.hypergraph, self.tag_stack, self.state_stack)
+        self.rule_tools = rule_tools(self.hypergraph, self.tag_stack, self.state_stack, self.clips)
         
     def setup_clips(self):
         self.clips.prepare_environment()
@@ -99,15 +99,11 @@ class CLIPS:
 
 
 class rule_tools:
-    def __init__(self, hypergraph, tag_stack, state_stack):
+    def __init__(self, hypergraph, tag_stack, state_stack, clips):
         self.groundings = {}
-        self.current = None
         self.stack   = []
-        self.rule_fail = False
-        self.proposition = None
-        
-        self.types = {}
-        
+        self.clips = clips
+        self.types = {}        
         self.tag_stack   = tag_stack
         self.state_stack = state_stack
         
@@ -142,53 +138,6 @@ class rule_tools:
         ## ground a specific variable
         self.groundings[variable] = ground
 
-    def tag_match_list(self, tag_list):
-        results = []
-        state   = None
-        stack   = []
-        output  = []
-
-        ## over-ride for other things failing
-        if self.rule_fail:
-            return False
-        
-        for matches in self.find_and_match(tag_list):
-            ## match to list then append the output
-            ## find and match is a generator
-            results.append(matches[0])
-            state = matches[1]
-
-        ## match it outright
-        if tag_list == results:
-            if self.preposition:
-                return (True, state, self.preposition)
-            else:
-                return (True, state)
-
-        else:
-            i = 0
-            ## if the tags > output no go, misaligned lists
-            if len(tag_list) > len(output):
-                return False
-            
-            ## FIXME: i need to fix this, so it works/doesnt suck
-            for x in tag_list:
-                print x
-                print results[i]
-                
-                if x == results[i]:
-                    output.append(True)
-                else:
-                    output.append(False)
-                    
-                i += 1
-                
-            if False in output:
-                return False
-            else:
-                return True
-        return False
-
     def set_type(self, variable, type):
         return variable
 
@@ -200,107 +149,5 @@ class rule_tools:
             
         return False
     
-    def find_and_match(self, tag_list):
-        tag_list = deque(tag_list)
-        
-        ## has to be a deque with something in it
-        if tag_list:
-            popped = tag_list.popleft()
-            self.stack.append(popped)
-            ## pop off the tag list onto the stack
-            tag, var_1, var_2 = self.stack[-1]
-            for x in self.find_next(tag):
-                if x:
-                    ## find our matching tag
-                    match = self.match_rule(tag, var_1, var_2)
-                    if match:
-                        self.match_stack.append(self.groundings)
-                        yield ([tag, var_1, var_2], self.groundings)
 
-                        ## run with recursion after yield
-                        for x in self.find_and_match(tag_list):
-                            ## check for sanity's sake
-                            if len(tag_list) > 0:
-                                tag, var_1, var_2 = tag_list.popleft()
-                            else:
-                                return
-                            #debug((tag, var_1, var_2))
-                            match = self.match_rule(tag, var_1, var_2)
-                            #debug(match)
-                            if match:
-                            ## dump on the stack
-                                self.stack.append((tag, var_1, var_2))
-                                self.match_stack.append(self.groundings)
-                                yield ([tag, var_1, var_2], self.groundings)
-                            else:
-                                self.reset()
-                            #return 
-                    else:
-                        self.reset()
-  
-                    
-    def find_next(self, tag):
-        if tag == '$prep':
-            for x in self.hypergraph.edge_by_type('feature'):
-                head, tag, tail = x
-                edge_data = tag[0]
-                
-                for preps in prepositions:
-                    if edge_data in prepositions:
-                        self.preposition = preps
-                        yield (head, edge_data, tail)
-            
-            yield False            
-            return
-                        
-                
-        for x in self.hypergraph.edge_by_type('feature'):
-            if not isinstance(tag, list):
-                if tag.startswith('!') and x[1][0] == tag[1:]:
-                    self.rule_fail = True
-                    yield False
-                    
-                elif tag.startswith('$'):
-                    head, tag, tail = x
-                    self.current = (head, tag[0], tail)
-                    yield self.current
-                    
-                elif x[1][0] == tag:
-                    head, tag, tail = x
-                    self.current = (head, tag[0], tail)
-                    yield self.current
-                
-    
-    def match_rule(self, tag, var_1, var_2):
-        ## check to see if we are ground and it is a var
-        if self.is_variable(var_1) and self.is_ground(var_1):
-            out = self.compare_ground(var_1, 0)
-            if not out:
-                return False
-            
-        ## otherwise we need to ground it
-        elif self.is_variable(var_1) and not self.is_ground(var_1):
-            self.ground_variable(var_1, self.current[0])
-     
-        if self.is_variable(var_2) and self.is_ground(var_2):
-            out = self.compare_ground(var_2, 2)
-            if not out:
-                return False
-            
-        elif self.is_variable(var_2) and not self.is_ground(var_2):
-            self.ground_variable(var_2, self.current[2])
-
-        if tag == '$prep':
-            ## XXX: bad way of doing this
-            return True
-        
-        if self.is_variable(tag) and self.is_ground(tag):
-            self.compare_ground(tag, 1)
-                
-        elif self.is_variable(var_2) and not self.is_ground(var_2):
-            self.ground_variable(tag, self.current[1])
-            
-        return True
-    
-        
 
