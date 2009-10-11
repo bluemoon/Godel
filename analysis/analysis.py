@@ -84,6 +84,9 @@ class relex_analysis:
                 hg.analysis()
 
             RE = rule_engine(features, hg.get_hypergraph())
+            RE.setup_clips()
+            RE.run_rules()
+
             #seperate_tags = self.relex.seperate_tags(features)
             
             ## cLambda.frames_in(frames)

@@ -59,9 +59,6 @@ class HG:
         self.sentence_analyze()
         
     def sentence_analyze(self):
-        rule = rule_engine(self.atoms)
-        rule.setup_clips()
-        rule.run_rules()
         
         #debug(self.tokenized)
         
