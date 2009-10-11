@@ -80,6 +80,8 @@ class rule_engine:
             results.append(matches[0])
             state = matches[1]
 
+        debug(results)
+        
         ## match it outright
         if rule_set == results:
             if self.preposition:
@@ -135,7 +137,7 @@ class rule_engine:
             return True
         
         if self.isVariable(tag) and self.isGround(tag):
-            self.compare_ground(tag, 1)
+            self.compareGround(tag, 1)
                 
         elif self.isVariable(var_2) and not self.isGround(var_2):
             self.ground_variable(tag, self.current[1])
@@ -175,7 +177,7 @@ class rule_engine:
         ## tag list is the list we match to
         ## it is the rule
         rule_set = deque(rule_set)
-        debug(rule_set)
+        ## debug(rule_set)
         
         ## has to be a deque with something in it
         if rule_set:
@@ -190,8 +192,8 @@ class rule_engine:
                     ## find our matching tag
                     match = self.compareRule(tag, var_1, var_2)
                     if match:
-                        self.match_stack.append(self.groundings)
-                        yield ([tag, var_1, var_2], self.groundings)
+                        ## self.match_stack.append(self.groundings)
+                        yield ([tag, var_1, var_2], self.Groundings)
 
                         ## run with recursion after yield
                         for x in self.match_rule_generator(rule_set):
@@ -206,8 +208,8 @@ class rule_engine:
                             if match:
                             ## dump on the stack
                                 self.stack.append((tag, var_1, var_2))
-                                self.match_stack.append(self.groundings)
-                                yield ([tag, var_1, var_2], self.groundings)
+                                ## self.match_stack.append(self.groundings)
+                                yield ([tag, var_1, var_2], self.Groundings)
                             else:
                                 ## reset the groundings
                                 self.reset()
