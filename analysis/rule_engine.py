@@ -23,7 +23,9 @@ class rule_engine:
         self.test_rule_parser()
 
     def test_rule_parser(self):
+        self.setType('$prep', 'preposition')
         test_rule = [['_obj','$be','$var1'], ['$prep','$var1','$var2']]
+        
         self.matchRule(test_rule)
         
     def reset(self):
@@ -57,6 +59,8 @@ class rule_engine:
         else:
             return False
     
+    def setType(self, variable, Type):
+        self.Types[variable] = Type
         
     def compareGround(self, ground, idx):
         if self.Groundings[ground] != self.current[idx]:
@@ -148,15 +152,18 @@ class rule_engine:
         ## change this to istype and isvariable
         if self.isType(tag):
             tagType = self.getType(tag)
-            for x in self.hypergraph.edge_by_type(tagType):
-                head, tag, tail = x
-                edge_data = tag[0]
-                yield (head, edge_data, tail)
-            
-            yield False            
-            return
+            ## dont play with a loaded gun
+            if self.hypergraph.has_edge_type(tagType):
+                debug(tagType)
+                for x in self.hypergraph.edge_by_type(tagType):
+                    head, tag, tail = x
+                    edge_data = tag[0]
+                    yield (head, edge_data, tail)
+            else:
+                yield False            
+                return
                         
-                
+        
         for x in self.hypergraph.edge_by_type('feature'):
             if not isinstance(tag, list):
                 if tag.startswith('!') and x[1][0] == tag[1:]:
@@ -177,7 +184,6 @@ class rule_engine:
         ## tag list is the list we match to
         ## it is the rule
         rule_set = deque(rule_set)
-        ## debug(rule_set)
         
         ## has to be a deque with something in it
         if rule_set:

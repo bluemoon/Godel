@@ -348,7 +348,12 @@ class Atoms:
             return False
         
 
-    
+    def has_edge_type(self, Type):
+        if Type in self.types:
+            return True
+        else:
+            return False
+        
     def edge_data(self, edge_id):
         ## Returns a reference to the data attached to an edge.
         mapped_data = map(None, self.edges[edge_id])

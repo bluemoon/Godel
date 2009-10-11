@@ -25,6 +25,17 @@ class HG:
                 
         #self.atoms.add_node(self.tokenized[-1], node_data=len(self.tokenized)+1)
 
+    def characterize_tag(self, find_tag):
+        characterizer = {
+            'preposition' : prepositions,
+        }
+        
+        for character, tags in characterizer.items():
+            ## combined = list(itertools.product([character], tag))
+            for tag in tags:
+                if find_tag == tag:
+                    return character
+
     def get_hypergraph(self):
         return self.atoms
     
@@ -42,7 +53,10 @@ class HG:
             head = feature[1]
             dependent = feature[2]
             
-            edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type='feature',
+            tag_type = self.characterize_tag(tag)
+            edge_type = (tag_type != None and tag_type or 'feature')
+            
+            edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
                                        with_merge=False)
         
     def frames_in(self, frames):
