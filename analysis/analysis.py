@@ -67,7 +67,6 @@ class relex_analysis:
 
             
             word_set = self.each_word(sentence)
-            cLambda.wordSet_to_lambdaSet(word_set)
             
             features = self.relex.parse_features(sentence)
             frames   = self.relex.parse_frames(sentence)
@@ -75,6 +74,7 @@ class relex_analysis:
             ## this will be for analysis
             if False:
                 self.dump_to_file((features, frames))
+
             
             if self.options.graph_tags:
                 hg.features_in(features)

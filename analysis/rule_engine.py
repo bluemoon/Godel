@@ -11,6 +11,8 @@ class rule_engine:
         self.clips = CLIPS()
         
         self.tag_stack   = tag_stack
+        
+        ## state stack will effectively be a matrix
         self.state_stack = []
         
         self.hypergraph  = hypergraph
@@ -49,7 +51,7 @@ class rule_engine:
         ## we need to set the first word here...
         ## env.Assert('(m _obj word1 word2)')
         for tag in self.rule_tools.tag_next():
-            debug(tag)
+            self.state_stack.append(tag)
             
 
         ## run our enviroment
