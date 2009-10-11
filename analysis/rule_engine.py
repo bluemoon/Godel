@@ -2,8 +2,6 @@ from collections import deque
 from structures.trampoline import trampoline
 from utils.debug import *
 
-import clips
-import uuid
 import os
 
 class rule_engine:
