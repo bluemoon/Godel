@@ -86,7 +86,6 @@ class relex_analysis:
                 hg.analysis()
 
             RE = rule_engine(features, hg.get_hypergraph())
-            RE.setup_clips()
             RE.run_rules()
 
             self.generate_mlnFile(frames, sentence)

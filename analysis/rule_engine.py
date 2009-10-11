@@ -6,28 +6,68 @@ import os
 
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
-        self.clips = CLIPS()
         self.tag_stack   = tag_stack
 
         self.state_stack = []
         self.stack = []
+
         self.hypergraph  = hypergraph
         
-        self.rule_tools = rule_tools(self.hypergraph, self.tag_stack, self.state_stack, self.clips)
-        
-    def match(self):
-        ## so we have tags in
-        ## [t1, t2, t3, ... tn]
-        ## memory which is a clone of tag_stack
-        pass
+        self.Groundings = {}
+        self.Types = {}
 
-    def reset(self):
+    def run_rules(self):
         pass
+    
+    def reset(self):
+        ## reset the groundings
+        del self.Groundings
+        self.Groundings = {}
+        
+    def isGround(self, variable):
+        ## is ground
+        if self.Groundings.has_key(variable):
+            return True
+        else:
+            return False
+        
+    def isVariable(self, text):
+        ## is it a variable?
+        if text.startswith('$'):
+            return True
+        else:
+            return False
+        
+    def isType(self, variable):
+        if self.Types.has_key(variable):
+            return True
+        else:
+            return False
+        
+    def getType(self, variable):
+        if self.isType(variable):
+            return self.Types[variable]
+        else:
+            return False
+    
+        
+    def compare_ground(self, ground, idx):
+        if self.Groundings[ground] != self.current[idx]:
+            self.last_match = False
+            return False
+        else:
+            return True
+        
+    def ground_variable(self, variable, ground):
+        ## ground a specific variable
+        self.Groundings[variable] = ground
+    
     
     def find_next(self, tag):
         ## change this to istype and isvariable
-        if tag == '$prep':
-            for x in self.hypergraph.edge_by_type('feature'):
+        if isType(tag):
+            tagType = getType(tag)
+            for x in self.hypergraph.edge_by_type(tagType):
                 head, tag, tail = x
                 edge_data = tag[0]
                 
@@ -56,7 +96,7 @@ class rule_engine:
                     self.current = (head, tag[0], tail)
                     yield self.current
                     
-    def find_and_match(self, rule_set):
+    def match_rule(self, rule_set):
         ## tag list is the list we match to
         ## it is the rule
         rule_set = deque(rule_set)
@@ -78,10 +118,10 @@ class rule_engine:
                         yield ([tag, var_1, var_2], self.groundings)
 
                         ## run with recursion after yield
-                        for x in self.find_and_match(tag_list):
+                        for x in self.match_rule(rule_set):
                             ## check for sanity's sake
                             if len(tag_list) > 0:
-                                tag, var_1, var_2 = tag_list.popleft()
+                                tag, var_1, var_2 = rule_set.popleft()
                             else:
                                 return
                             #debug((tag, var_1, var_2))
