@@ -22,6 +22,7 @@ class rule_engine:
         self.setup_callbacks()
         
     def setup_callbacks(self):
+                
         #self.clips.add_callback(self.rule_tools.match, "m", from_class=True)
         self.clips.add_callback(self.rule_tools.set_type, "set-type", from_class=True)
           
@@ -41,7 +42,6 @@ class rule_engine:
 
         env.Run()
         env.PrintFacts()
-
         env.PrintRules()
 
             
@@ -142,6 +142,10 @@ class rule_tools:
         return variable
 
     def match(self, m1, m2, m3):
+        ## i dont know how i should do the searching with clips
+        ## maybe something like match rule then use the python function
+        ## to generate the next word assertion
+
         for idx, item in enumerate(self.tag_stack):
             if [m1, m2, m3] == item:
                 self.state_stack.append((idx, [m1, m2, m3]))
