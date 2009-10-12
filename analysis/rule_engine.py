@@ -2,12 +2,17 @@ from collections import deque
 from utils.debug import *
 from rule_parser import parse_file
 
+from nltk.stem.wordnet import WordNetLemmatizer
+
 import os
 
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
-        
+
+        self.lemma = WordNetLemmatizer()
+        ## .lemmatize('cars')
+
         self.state_stack = []
         self.stack = []
 
