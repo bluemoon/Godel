@@ -41,6 +41,7 @@ static PyObject *scheme_set_callback(scheme *self, PyObject *args){
   Scheme_Object *callback;
   Scheme_Object *Py_type;
   Scheme_Object *var;
+
   callback = scheme_alloc_object();
   var = scheme_alloc_object();
 
