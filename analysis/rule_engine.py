@@ -5,15 +5,16 @@ from rule_parser import parse_file
 import os
 
 class environmentNode:
-    def __init__(self, cargo=None, parent=None):
-        self.cargo = cargo
-        self.parent  = parent
+    def __init__(self, cargo=None, depth=None, parent=None):
+        self.cargo  = cargo
+        self.parent = parent
+        self.depth  = depth
 
     def __str__(self):
         return str(self.cargo)
     
     def __repr__(self):
-        return '<environmentNode[%s:%s]>' % (self.cargo, self.next)
+        return '<environmentNode[%s:%d]>' % (self.cargo, self.depth)
 
 class environment(environmentNode):
     def __init__(self):
@@ -24,7 +25,7 @@ class interpreter:
         self.environment_stack = []
         self.temp_stack = []
         self.depth_stack = [(0,0)]
-                
+        
     def isBranch(self, node):
         return isinstance(node, list)
         
@@ -36,8 +37,19 @@ class interpreter:
             self.depth_stack.append((self.depth_stack[-1][0] + 1, len(node)))
             for child in node:
                 if isinstance(child, list):
+                    node = environmentNode(cargo=child, depth=len(self.depth_stack))
+                    if len(self.depth_stack) > len(self.environment_stack):
+                        if len(self.environment_stack) > 0:
+                            if self.environment_stack[-1][-1].depth == len(self.depth_stack):
+                                self.environment_stack[-1].append(node)
+                            else:
+                                self.environment_stack.append([node]) 
+                        else:
+                            self.environment_stack.append([node])
+
                     self.treeTraversal(child)
                 else:
+                                            
                     if len(self.depth_stack) > 1:
                         while self.depth_stack:
                             depth, length = self.depth_stack.pop()
@@ -50,6 +62,7 @@ class interpreter:
         for x in parsed:
             self.treeTraversal(x)
             debug(self.depth_stack)
+            debug(self.environment_stack)
             self.depth_stack = []
         
     def continuation(self, Continue):
