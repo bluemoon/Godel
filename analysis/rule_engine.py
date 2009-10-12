@@ -4,90 +4,6 @@ from rule_parser import parse_file
 
 import os
 
-class environmentNode:
-    def __init__(self, cargo=None, depth=None, parent=None):
-        self.cargo  = cargo
-        self.parent = parent
-        self.depth  = depth
-
-    def __str__(self):
-        return str(self.cargo)
-    
-    def __repr__(self):
-        return '<environmentNode[%s:%d]>' % (self.cargo, self.depth)
-
-class environment(environmentNode):
-    def __init__(self):
-        pass
-    
-class interpreter:
-    def __init__(self):
-        self.environment_stack = []
-        self.temp_stack = []
-        self.depth_stack = [(0,0)]
-        
-    def isBranch(self, node):
-        return isinstance(node, list)
-        
-    def treeTraversal(self, node):
-        debug(node)
-        debug(self.depth_stack)
-        
-        if self.isBranch(node):
-            self.depth_stack.append((self.depth_stack[-1][0] + 1, len(node)))
-            for child in node:
-                if isinstance(child, list):
-                    node = environmentNode(cargo=child, depth=len(self.depth_stack))
-                    if len(self.depth_stack) > len(self.environment_stack):
-                        if len(self.environment_stack) > 0:
-                            if self.environment_stack[-1][-1].depth == len(self.depth_stack):
-                                self.environment_stack[-1].append(node)
-                            else:
-                                self.environment_stack.append([node]) 
-                        else:
-                            self.environment_stack.append([node])
-
-                    self.treeTraversal(child)
-                else:
-                                            
-                    if len(self.depth_stack) > 1:
-                        while self.depth_stack:
-                            depth, length = self.depth_stack.pop()
-                            if length-1 > 0:
-                                self.depth_stack.append((depth, length-1))
-                                break
-        
-        
-    def interpret(self, parsed):
-        for x in parsed:
-            self.treeTraversal(x)
-            debug(self.depth_stack)
-            debug(self.environment_stack)
-            self.depth_stack = []
-        
-    def continuation(self, Continue):
-        while Continue:
-            x = Continue.pop(0)
-            debug(x)
-            
-            if isinstance(x, list):
-                if self.temp_stack:
-                    e = environmentNode(cargo=self.temp_stack)
-
-                    self.temp_stack = []
-
-                    if len(self.environment_stack) > 1:
-                        previous = self.environment_stack[-2]
-                        previous.next = e
-                    
-                self.continuation(x)
-                
-            elif isinstance(x, str):
-                self.temp_stack.append(x)
-                
-
-
-
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
@@ -99,21 +15,16 @@ class rule_engine:
         
         self.Groundings = {}
         self.Types = {}
-        self.interpreter = interpreter()
         
     def parse_rulefile(self, file):
         parsed = parse_file(file)
         parsed = parsed.asList()
         self.interpreter.interpret(parsed)
         
-        
-
-    
     def run_rules(self):
         #self.parse_rulefile('')
         self.test_rule_parser()
         self.test_prep_rule()
-        self.parse_rulefile('analysis/prep_rules.clips')
         
     def test_rule_parser(self):
         self.setType('$prep', 'preposition')

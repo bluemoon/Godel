@@ -47,6 +47,34 @@ class list_functions:
         c_max_depth = reduce(lambda x, y: max(x, y), a_list)
         if c_max_depth:
             return max(c_max_depth)
+
+
+    def isBranch(self, node):
+        return isinstance(node, list)
+        
+    def treeTraversal(self, node):
+        debug(node)
+        debug(self.depth_stack)
+
+        self.frame_stack.append([])
+        for x in self.depth_stack:
+            self.frame_stack[-1].append(x)
+        
+        if self.isBranch(node):
+            self.depth_stack.append((self.depth_stack[-1][0] + 1, len(node)))
+            for child in node:
+                if isinstance(child, list):
+                    self.treeTraversal(child)
+                else:
+                    self.list_depth_stack.append((self.element, len(self.depth_stack)))
+                    self.element += 1
+                    
+                    if len(self.depth_stack) > 1:
+                        while self.depth_stack:
+                            depth, length = self.depth_stack.pop()
+                            if length-1 > 0:
+                                self.depth_stack.append((depth, length-1))
+                                break
         
     def subtree_indices(self, tree_rep):
         tree = [([], tree_rep)]
