@@ -176,7 +176,7 @@ class Atoms:
         self.types[edge_type].append((head_id, edge_data, tail_id))
             
             
-        self.edges[edge_id] = (head_id, tail_id, edge_data, edge_type)
+        self.edges[edge_id] = [head_id, tail_id, edge_data, edge_type]
 
         
         if not self.nodes.has_key(head_id):
@@ -347,7 +347,14 @@ class Atoms:
         else:
             return False
         
-
+    def delete_edge_type(self, Type):
+        if Type in self.types:
+            for edge in self.edges:
+                if self.edges[edge][3] == Type:
+                    self.edges[edge][3] = None
+        else:
+            return False
+        
     def has_edge_type(self, Type):
         if Type in self.types:
             return True
@@ -578,13 +585,18 @@ class Atoms:
         node_list = self.nodes.keys()
 
         for types in self.edge_types:
-            color = unique_colors.pop()
-            unique_color_dict[types] = color
+            if types != None:
+                color = unique_colors.pop()
+                unique_color_dict[types] = color
             
         for node in node_list:
             for edge in self.node_out_edges(node):
                 edge_type = edge[4]
-                color = unique_color_dict[edge_type]
+                
+                if unique_color_dict.has_key(edge_type):
+                    color = unique_color_dict[edge_type]
+                else:
+                    color = 'black'
                 
                 if len(edge[1]) == 1:
                     label = str(edge[1][0])

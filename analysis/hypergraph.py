@@ -73,7 +73,9 @@ class HG:
         self.sentence_analyze()
         
     def sentence_analyze(self):
-        self.atoms.to_dot_file(primary_type='sentence')
+        ##        self.atoms.to_dot_file(primary_type='sentence')
+        pass
+    
 
 
         

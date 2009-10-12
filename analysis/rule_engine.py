@@ -16,18 +16,21 @@ class rule_engine:
         self.Groundings = {}
         self.Types = {}
         
-    def parse_rulefile(self, file):
-        parsed = parse_file(file)
-        parsed = parsed.asList()
-        self.interpreter.interpret(parsed)
-        
     def run_rules(self):
         #self.parse_rulefile('')
-        self.test_rule_parser()
-        self.test_prep_rule()
+        ## self.test_rule_parser()
+        ## self.test_prep_rule()
+        self.setType('$prep', 'preposition')
+        self.setType('$in_sent', 'sentence')
+        
+        prep = prepRules(self.tag_stack, self.hypergraph)
+        triples = tripleRules(self.tag_stack, self.hypergraph)
+        
+        debug(prep.run_rules())
+        debug(triples.run_rules())
         
     def test_rule_parser(self):
-        self.setType('$prep', 'preposition')
+
         self.ground_variable('$be', 'be')
         test_rule = [['_obj','$be','$var1'], ['$prep','$var1','$var2']]
         
@@ -85,7 +88,10 @@ class rule_engine:
     def ground_variable(self, variable, ground):
         ## ground a specific variable
         self.Groundings[variable] = ground
-    
+
+    def makeLink(self, tag_set):
+        self.hypergraph.add_edge(tag[1], tag[2], edge_data=[], edge_type='preposition-link', with_merge=False)
+        
     def matchRule(self, rule_set):
         results = []
         state   = None
@@ -97,7 +103,8 @@ class rule_engine:
             ## find and match is a generator
             results.append(matches[0])
             state = matches[1]
-
+            
+        debug(rule_set)
         debug(results)
         debug(state)
         
@@ -105,7 +112,6 @@ class rule_engine:
         if rule_set == results:
             return (True, state)
             
-
         else:
             i = 0
             ## if the tags > output no go, misaligned lists
@@ -128,8 +134,43 @@ class rule_engine:
             
         return False
     
+    def replaceOutput(self, ruleOutput, rule):
+        if not ruleOutput:
+            return False
+        
+        output = []
+        
+        for tag_set in rule:            
+            replaced = self.replaceVariable(tag_set, ruleOutput[1])
+            output.append(replaced)
+
+        return output
+            
+    def replaceVariable(self, tag_frame, groundings):
+        output = tag_frame
+        for x in xrange(len(tag_frame)):
+            if self.isVariable(tag_frame[x]):
+                if tag_frame[x] in groundings.keys():
+                    output[x] = groundings[tag_frame[x]]
+
+        return output
+
+    def matchRuleSet(self, ruleSet):
+        output_stack = []
+        for key, value in ruleSet.items():
+            self.ground_variable('$be', 'be')
+            
+            match_list = self.matchRule(value)
+            if match_list:
+                output = self.replaceOutput(match_list, value)
+                output_stack.append((key, output))
+                
+            self.reset()
+                
+        return output_stack
+    
     def compareRule(self, tag, var_1, var_2):
-        debug([tag, var_1, var_2])
+        #debug([tag, var_1, var_2])
         ## check to see if we are ground and it is a var
         if self.isVariable(var_1) and self.isGround(var_1):
             out = self.compareGround(var_1, 0)
@@ -215,13 +256,13 @@ class rule_engine:
                         ## run with recursion after yield
                         for x in self.match_rule_generator(rule_set):
                             ## check for sanity's sake
-                            if len(tag_list) > 0:
+                            if len(rule_set) > 0:
                                 tag, var_1, var_2 = rule_set.popleft()
                             else:
                                 return
                             
                             #debug((tag, var_1, var_2))
-                            match = self.matchRule(tag, var_1, var_2)
+                            match = self.compareRule(tag, var_1, var_2)
                             #debug(match)
                             if match:
                             ## dump on the stack
@@ -236,3 +277,52 @@ class rule_engine:
                         self.reset()
                         
 
+
+class prepRules(rule_engine):
+    def prep_rule_0(self):
+        self.ground_variable('$be', 'be')
+        match = matchRule([['_obj','$be','$var1'], ['$prep','$var1','$var2']])
+            
+        
+        
+    def run_rules(self):
+        rules = {
+            'prep_rule_0' : [['_obj','$be','$var1'], ['$prep','$var1','$var2']],
+            'prep_rule_1' : [['_subj','$be','$var1'], ['$prep','$var1','$var2']],
+            'prep_rule_2' : [['_predadj','$var1','$var0'], ['$prep','$var1','$var2']],
+            'prep_rule_3' : [['_obj','$var1','$var0'], ['$prep','$var1','$var2']],
+            'prep_rule_4' : [['_subj','$var1','$var0'], ['$prep','$var1','$var2']],
+        }
+        output = self.matchRuleSet(rules)
+        ## self.hypergraph.delete_edge_type('preposition')
+        if output:
+            for tag in output[0][1]:
+                if tag[0] == '$prep':
+                    self.hypergraph.add_edge(tag[1], tag[2], edge_data=[], edge_type='preposition-link', with_merge=False)
+
+        self.hypergraph.to_dot_file(primary_type='sentence')
+        return output
+    
+class tripleRules(rule_engine):
+    def triple_rule_0(self):
+        rule = [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var1','$var2']]
+        match = self.matchRule(rule)
+        if match:
+            pass
+        
+    def run_rules(self):
+        rules = {
+            ## Sentence: "Lisbon is the capital of Portugaul"
+            ## _subj(be, Lisbon) ^ _obj(be, capital) ^ of(capital, Portugaul)
+            'triple_rule_0' : [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var1','$var2']],
+            ## Sentence: "The capital of Germany is Berlin"
+            ## _subj(be,$var0) ^ _obj(be,$var1) ^ $prep($var0,$var2)
+            'triple_rule_1' : [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var0','$var2']],
+            'triple_rule_2' : [['_predadj','$var1','$var0'],['$prep','$var1','$var2']], 
+            'triple_rule_3' : [['!_subj','$x','$y'], ["_obj","$var0","$var1"], ["$prep","$var0","$var2"]],
+            'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$phinst","$var2"]],
+            'triple_rule_6' : [["_subj","$be","$var1"], ["_obj","$be","$var2"]],
+        }
+        output = self.matchRuleSet(rules)
+        return output
+    
