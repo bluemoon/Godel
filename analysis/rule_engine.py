@@ -3,6 +3,8 @@ from utils.debug import *
 from rule_parser import parse_file
 
 from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.porter import PorterStemmer
+
 
 import os
 
@@ -12,11 +14,14 @@ class rule_engine:
 
         self.lemma = WordNetLemmatizer()
         ## .lemmatize('cars')
+        self.porter  = PorterStemmer()
+        ## p.stem('running')
+
 
         self.state_stack = []
         self.stack = []
 
-        self.hypergraph  = hypergraph
+        self.hypergraph = hypergraph
         
         self.Groundings = {}
         self.Types = {}
@@ -207,13 +212,17 @@ class rule_engine:
         return True
     
     def find_next(self, tag):
+        debug(tag)
         if self.isType(tag):
             tagType = self.getType(tag)
+            debug(tagType)
             ## dont play with a loaded gun
             if self.hypergraph.has_edge_type(tagType):
                 for x in self.hypergraph.edge_by_type(tagType):
-                    head, tag, tail = x
-                    edge_data = tag[0]
+                    head, cur_tag, tail = x
+                    edge_data = cur_tag[0]
+                    debug(tag)
+                    self.ground_variable(tag, edge_data)
                     self.current = (head, edge_data, tail)
                     yield (head, edge_data, tail)
             else:
@@ -325,7 +334,7 @@ class tripleRules(rule_engine):
             'triple_rule_1' : [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var0','$var2']],
             'triple_rule_2' : [['_predadj','$var1','$var0'],['$prep','$var1','$var2']], 
             'triple_rule_3' : [['!_subj','$x','$y'], ["_obj","$var0","$var1"], ["$prep","$var0","$var2"]],
-            'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$phinst","$var2"]],
+            'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$in_sent","$var2"]],
             'triple_rule_6' : [["_subj","$be","$var1"], ["_obj","$be","$var2"]],
         }
         output = self.matchRuleSet(rules)

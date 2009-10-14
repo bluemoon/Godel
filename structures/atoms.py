@@ -65,7 +65,6 @@ class Atoms:
         self.edge_types = []
         self.types = {}
 
-
     
     def copy(self, G):
         ## Performs a copy of the graph, G, into self.
