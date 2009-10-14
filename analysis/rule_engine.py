@@ -12,9 +12,9 @@ class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
 
-        self.lemma = WordNetLemmatizer()
+        ## self.lemma = WordNetLemmatizer()
         ## .lemmatize('cars')
-        self.porter  = PorterStemmer()
+        self.stemmer  = PorterStemmer()
         ## p.stem('running')
 
 
@@ -23,11 +23,12 @@ class rule_engine:
 
         self.hypergraph = hypergraph
         
+        self.Schema = []
         self.Groundings = {}
         self.Types = {}
         
     def run_rules(self):
-        #self.parse_rulefile('')
+        ## self.parse_rulefile('')
         ## self.test_rule_parser()
         ## self.test_prep_rule()
         self.setType('$prep', 'preposition')
@@ -40,7 +41,6 @@ class rule_engine:
         debug(triples.run_rules())
         
     def test_rule_parser(self):
-
         self.ground_variable('$be', 'be')
         test_rule = [['_obj','$be','$var1'], ['$prep','$var1','$var2']]
         
@@ -114,9 +114,9 @@ class rule_engine:
             results.append(matches[0])
             state = matches[1]
             
-        debug(rule_set)
-        debug(results)
-        debug(state)
+        #debug(rule_set)
+        #debug(results)
+        #debug(state)
         
         ## match it outright
         if rule_set == results:
@@ -169,7 +169,6 @@ class rule_engine:
         output_stack = []
         for key, value in ruleSet.items():
             self.ground_variable('$be', 'be')
-            
             match_list = self.matchRule(value)
             if match_list:
                 output = self.replaceOutput(match_list, value)
@@ -179,6 +178,24 @@ class rule_engine:
                 
         return output_stack
     
+    def lemma(self, word, grounding):
+        if self.isVariable(word) and self.isGround(word):
+            groundedWord = self.Groundings[word]
+            stemmed = self.stemmer.stem_word(groundedWord)
+            self.ground_variable(grounding, stemmed)
+        elif not self.isVariable(word):
+            stemmed = self.stemmer.stem_word(word)
+            self.ground_variable(grounding, stemmed)
+
+    def schema(self, schema_name, ground_1, ground_2):
+        isVar = self.isVariable(ground_1) and self.isVariable(ground_2)
+        isGround = self.isGround(ground_1) and self.isGround(ground_2)
+        
+        if isVar and isGround:
+            ground_1 = self.Groundings[ground_1]
+            ground_2 = self.Groundings[ground_2]
+            self.Schema.append((schema_name, ground_1, ground_2))
+            
     def compareRule(self, tag, var_1, var_2):
         #debug([tag, var_1, var_2])
         ## check to see if we are ground and it is a var
@@ -212,16 +229,13 @@ class rule_engine:
         return True
     
     def find_next(self, tag):
-        debug(tag)
         if self.isType(tag):
             tagType = self.getType(tag)
-            debug(tagType)
             ## dont play with a loaded gun
             if self.hypergraph.has_edge_type(tagType):
                 for x in self.hypergraph.edge_by_type(tagType):
                     head, cur_tag, tail = x
-                    edge_data = cur_tag[0]
-                    debug(tag)
+                    edge_data = cur_tag[0]                    
                     self.ground_variable(tag, edge_data)
                     self.current = (head, edge_data, tail)
                     yield (head, edge_data, tail)
@@ -294,12 +308,22 @@ class rule_engine:
 
 class prepRules(rule_engine):
     def prep_rule_0(self):
+        self.setType('$prep', 'preposition')
         self.ground_variable('$be', 'be')
-        match = matchRule([['_obj','$be','$var1'], ['$prep','$var1','$var2']])
-            
         
+        match = self.matchRule([['_obj','$be','$var1'], ['$prep','$var1','$var2']])
+        match and (
+            self.lemma('$var1', '$word1') and
+            self.schema("scm:make-prep-phrase","$word1","$prep")
+            ) or None
         
+        grounding_snapshot = self.Groundings
+        
+        return (match, grounding_snapshot)
+    
     def run_rules(self):
+        self.prep_rule_0()
+        
         rules = {
             'prep_rule_0' : [['_obj','$be','$var1'], ['$prep','$var1','$var2']],
             'prep_rule_1' : [['_subj','$be','$var1'], ['$prep','$var1','$var2']],
