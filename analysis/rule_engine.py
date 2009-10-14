@@ -99,8 +99,12 @@ class rule_engine:
         ## ground a specific variable
         self.Groundings[variable] = ground
 
-    def makeLink(self, tag_set):
-        self.hypergraph.add_edge(tag[1], tag[2], edge_data=[], edge_type='preposition-link', with_merge=False)
+    def addLink(self, ground_1, ground_2, type, data=None):
+        if self.isGround(ground_1) and self.isGround(ground_2):
+            ground_1 = self.Groundings[ground_1]
+            ground_2 = self.Groundings[ground_2]
+            
+            self.hypergraph.add_edge(ground_1, ground_2, edge_data=[data], edge_type=type, with_merge=False)
         
     def matchRule(self, rule_set):
         results = []
@@ -164,11 +168,22 @@ class rule_engine:
                     output[x] = groundings[tag_frame[x]]
 
         return output
-
+    
+    def matchTemplate(self, rule_set, callback):
+        output_stack = []
+        for key, value in rule_set.items():
+            match_rule = callback(value)
+            if match_rule[0]:
+                output = self.replaceOutput(match_rule, value)
+                output_stack.append((key, output))
+                
+            self.reset()
+                
+        return output_stack
+        
     def matchRuleSet(self, ruleSet):
         output_stack = []
         for key, value in ruleSet.items():
-            self.ground_variable('$be', 'be')
             match_list = self.matchRule(value)
             if match_list:
                 output = self.replaceOutput(match_list, value)
@@ -187,17 +202,8 @@ class rule_engine:
             stemmed = self.stemmer.stem_word(word)
             self.ground_variable(grounding, stemmed)
 
-    def schema(self, schema_name, ground_1, ground_2):
-        isVar = self.isVariable(ground_1) and self.isVariable(ground_2)
-        isGround = self.isGround(ground_1) and self.isGround(ground_2)
-        
-        if isVar and isGround:
-            ground_1 = self.Groundings[ground_1]
-            ground_2 = self.Groundings[ground_2]
-            self.Schema.append((schema_name, ground_1, ground_2))
             
     def compareRule(self, tag, var_1, var_2):
-        #debug([tag, var_1, var_2])
         ## check to see if we are ground and it is a var
         if self.isVariable(var_1) and self.isGround(var_1):
             out = self.compareGround(var_1, 0)
@@ -307,22 +313,22 @@ class rule_engine:
 
 
 class prepRules(rule_engine):
-    def prep_rule_0(self):
+    def prep_template(self, rule):
         self.setType('$prep', 'preposition')
         self.ground_variable('$be', 'be')
         
-        match = self.matchRule([['_obj','$be','$var1'], ['$prep','$var1','$var2']])
-        match and (
-            self.lemma('$var1', '$word1') and
-            self.schema("scm:make-prep-phrase","$word1","$prep")
-            ) or None
-        
+        match = self.matchRule(rule)
+        if match:
+            self.lemma('$var1', '$word1')
+
+            concat = '_'.join([self.Groundings['$word1'], self.Groundings['$prep']])
+            self.addLink('$word1', '$prep', 'preposition-link', data=concat)
+
         grounding_snapshot = self.Groundings
-        
         return (match, grounding_snapshot)
     
     def run_rules(self):
-        self.prep_rule_0()
+        ## debug(self.prep_rule_0())
         
         rules = {
             'prep_rule_0' : [['_obj','$be','$var1'], ['$prep','$var1','$var2']],
@@ -331,12 +337,7 @@ class prepRules(rule_engine):
             'prep_rule_3' : [['_obj','$var1','$var0'], ['$prep','$var1','$var2']],
             'prep_rule_4' : [['_subj','$var1','$var0'], ['$prep','$var1','$var2']],
         }
-        output = self.matchRuleSet(rules)
-        ## self.hypergraph.delete_edge_type('preposition')
-        if output:
-            for tag in output[0][1]:
-                if tag[0] == '$prep':
-                    self.hypergraph.add_edge(tag[1], tag[2], edge_data=[], edge_type='preposition-link', with_merge=False)
+        output = self.matchTemplate(rules, callback=self.prep_template)
 
         self.hypergraph.to_dot_file(primary_type='sentence')
         return output
@@ -345,6 +346,9 @@ class tripleRules(rule_engine):
     def triple_rule_0(self):
         rule = [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var1','$var2']]
         match = self.matchRule(rule)
+        ## phrase
+        # "$word1" "$prep"
+        # "$var2" "$var0"
         if match:
             pass
         
