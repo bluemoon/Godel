@@ -2,9 +2,9 @@ from distutils.core import setup, Extension
 
 module1 = Extension('scheme',
                     sources = ['scheme.c'],
-                    include_dirs = ['/home/bluemoon/Projects/libscheme-0.5'],
-                    libraries = ['scheme'],
-                    library_dirs = ['/home/bluemoon/Projects/libscheme-0.5'],
+                    include_dirs = ['/usr/include/', '/usr/include/libguile/'],
+                    libraries = ['guile', 'gmp'],
+                    library_dirs = ['/usr/lib/'],
                     )
 
 setup (name = 'scheme',
