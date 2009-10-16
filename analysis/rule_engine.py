@@ -10,11 +10,11 @@ import os
 import sys
 
 from structures.atoms import Atoms
-sys.path.append('libs/')
-#from libs.psyche.interpreter import Interpreter
-#from libs.psyche import *
-from libs.pyscheme import *
-    
+
+from extensions.guile.guile import VM
+from extensions.guile.guile import guile
+
+
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
@@ -31,22 +31,25 @@ class rule_engine:
         self.Types = {}
 
     def interpreter(self, file):
+        vm = VM('r5rs')
         primitive_procedures = [
-            ["match?", self.matchRule],
+            ["match-rule?", self.matchRule],
+            ["rule-applied", self.rule_applied],
         ]
-        interpreter = scheme.RegularInterpreter()
-        environment = interpreter.get_environment()
-
-        ## add the python callbacks
-        for name, procedure in primitive_procedures:
-            installPythonFunction(name, procedure, environment)
-
-        ## open the file and read it
-        f_handle = open(file, 'r')
-        text = f_handle.read()
         
-        print interpreter.eval(parser.parse(text))
-        f_handle.close()
+        
+        for name, procedure in primitive_procedures:
+            vm.define(name, vm.toscheme(procedure))
+
+        ## run the c primitive
+        vm.load(file)
+        
+        
+        #f_handle = open(file, 'r')
+        #text = f_handle.read().strip()
+        
+                
+        #f_handle.close()
 
     def parse_rulefile(self, rule_file):
         self.interpreter('analysis/prep-rules.scm')
@@ -80,6 +83,9 @@ class rule_engine:
         
         self.matchRule(test_rule)
 
+    def rule_applied(self, rule):
+        debug(rule, prefix="rule applied from scheme")
+        
     def reset(self):
         ## reset the groundings
         del self.Groundings
@@ -150,7 +156,7 @@ class rule_engine:
         
         ## match it outright
         if rule_set == results:
-            return (True, state)
+            return True
             
         else:
             i = 0
@@ -367,10 +373,10 @@ class prepRules(rule_engine):
             'prep_rule_3' : [['_obj','$var1','$var0'], ['$prep','$var1','$var2']],
             'prep_rule_4' : [['_subj','$var1','$var0'], ['$prep','$var1','$var2']],
         }
-        output = self.matchTemplate(rules, callback=self.prep_template)
+        #output = self.matchTemplate(rules, callback=self.prep_template)
 
-        self.hypergraph.to_dot_file(primary_type='sentence')
-        return output
+        #self.hypergraph.to_dot_file(primary_type='sentence')
+        #return output
     
 class tripleRules(rule_engine):
     def triple_rule_0(self):
@@ -395,6 +401,6 @@ class tripleRules(rule_engine):
             'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$in_sent","$var2"]],
             'triple_rule_6' : [["_subj","$be","$var1"], ["_obj","$be","$var2"]],
         }
-        output = self.matchRuleSet(rules)
-        return output
+        #output = self.matchRuleSet(rules)
+        #return output
     
