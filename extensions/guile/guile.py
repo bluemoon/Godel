@@ -614,12 +614,11 @@ class VM(object):
             return val._lambda
         if callable(val):
             smob = PythonSMOB.new(val)
-            print smob
             lam = self.apply(self._scm_lambda_wrapper, [self._scm_py_call,
                                                         smob,
                                                         self.toscheme(shallow),
                                                         self.toscheme(self)])
-            print lam
+
             guile.scm_set_procedure_property_x(lam,
                                                self._scm_py_lambda_identifier,
                                                smob)

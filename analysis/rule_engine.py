@@ -30,11 +30,18 @@ class rule_engine:
         self.Groundings = {}
         self.Types = {}
 
-    def interpreter(self, file):
+    def interpreter(self, files):
         vm = VM('r5rs')
         primitive_procedures = [
             ["match-rule?", self.matchRule],
             ["rule-applied", self.rule_applied],
+            ["lemma", self.lemma],
+            ["in-sentence?", self.inSentence],
+            #["convert-to-phrase", self.convert],
+            ["make-link", self.addLink],
+            ["reset-scope", self.reset],
+            ["ground", self.ground_variable],
+            ["set-link-type", self.setType],
         ]
         
         
@@ -42,31 +49,24 @@ class rule_engine:
             vm.define(name, vm.toscheme(procedure))
 
         ## run the c primitive
-        vm.load(file)
-        
-        
-        #f_handle = open(file, 'r')
-        #text = f_handle.read().strip()
-        
-                
-        #f_handle.close()
+        for file in files:
+            vm.load(file)
 
     def parse_rulefile(self, rule_file):
-        self.interpreter('analysis/prep-rules.scm')
+        self.interpreter(['analysis/prep-rules.scm', 'analysis/triple-rules.scm'])
         
     def run_rules(self):
-        self.parse_rulefile('')
-        self.test_rule_parser()
-        self.test_prep_rule()
         
+                
         self.setType('$prep', 'preposition')
         self.setType('$in_sent', 'sentence')
         
         prep = prepRules(self.tag_stack, self.hypergraph)
         triples = tripleRules(self.tag_stack, self.hypergraph)
         
-        debug(prep.run_rules())
+        #debug(prep.run_rules())
         debug(triples.run_rules())
+        self.parse_rulefile('')
         
     def test_rule_parser(self):
         self.ground_variable('$be', 'be')
@@ -84,6 +84,7 @@ class rule_engine:
         self.matchRule(test_rule)
 
     def rule_applied(self, rule):
+        debug(self.output)
         debug(rule, prefix="rule applied from scheme")
         
     def reset(self):
@@ -97,7 +98,10 @@ class rule_engine:
             return True
         else:
             return False
-        
+
+    def inSentence(self, word):
+        pass
+    
     def isVariable(self, text):
         ## is it a variable?
         if text.startswith('$'):
@@ -139,6 +143,7 @@ class rule_engine:
 
 
     def matchRule(self, rule_set):
+        debug(rule_set)
         results = []
         state   = None
         stack   = []
@@ -156,28 +161,9 @@ class rule_engine:
         
         ## match it outright
         if rule_set == results:
+            self.output = matches[1]
             return True
-            
-        else:
-            i = 0
-            ## if the tags > output no go, misaligned lists
-            if len(rule_set) > len(output):
-                return False
-            
-            ## FIXME: i need to fix this, so it works/doesnt suck
-            for x in tag_list:
-                if x == results[i]:
-                    output.append(True)
-                else:
-                    output.append(False)
-                    
-                i += 1
-                
-            if False in output:
-                return False
-            else:
-                return True
-            
+
         return False
     
     def replaceOutput(self, ruleOutput, rule):
@@ -187,7 +173,7 @@ class rule_engine:
         output = []
         
         for tag_set in rule:            
-            replaced = self.replaceVariable(tag_set, ruleOutput[1])
+            replaced = self.replaceVariable(tag_set, self.output)
             output.append(replaced)
 
         return output
@@ -354,11 +340,13 @@ class prepRules(rule_engine):
         
         match = self.matchRule(rule)
         if match:
-            self.Groundings = match[1]
-            self.lemma('$var1', '$word1')
-
-            concat = '_'.join([self.Groundings['$word1'], self.Groundings['$prep']])
-            self.addLink('$word1', '$prep', 'preposition-link', data=concat)
+            debug(match)
+            if match[1]:
+                self.Groundings = match[1]
+                self.lemma('$var1', '$word1')
+                
+                concat = '_'.join([self.Groundings['$word1'], self.Groundings['$prep']])
+                self.addLink('$word1', '$prep', 'preposition-link', data=concat)
 
         grounding_snapshot = self.Groundings
         return (match, grounding_snapshot)
@@ -373,10 +361,10 @@ class prepRules(rule_engine):
             'prep_rule_3' : [['_obj','$var1','$var0'], ['$prep','$var1','$var2']],
             'prep_rule_4' : [['_subj','$var1','$var0'], ['$prep','$var1','$var2']],
         }
-        #output = self.matchTemplate(rules, callback=self.prep_template)
+        output = self.matchTemplate(rules, callback=self.prep_template)
 
         #self.hypergraph.to_dot_file(primary_type='sentence')
-        #return output
+        return output
     
 class tripleRules(rule_engine):
     def triple_rule_0(self):
@@ -401,6 +389,6 @@ class tripleRules(rule_engine):
             'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$in_sent","$var2"]],
             'triple_rule_6' : [["_subj","$be","$var1"], ["_obj","$be","$var2"]],
         }
-        #output = self.matchRuleSet(rules)
-        #return output
+        output = self.matchRuleSet(rules)
+        return output
     
