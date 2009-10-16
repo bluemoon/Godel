@@ -5,18 +5,21 @@ from rule_parser import parse_file
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
 
-
+import pprint
 import os
+import sys
 
+from structures.atoms import Atoms
+sys.path.append('libs/')
+#from libs.psyche.interpreter import Interpreter
+#from libs.psyche import *
+from libs.pyscheme import *
+    
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
 
-        ## self.lemma = WordNetLemmatizer()
-        ## .lemmatize('cars')
         self.stemmer  = PorterStemmer()
-        ## p.stem('running')
-
 
         self.state_stack = []
         self.stack = []
@@ -26,11 +29,33 @@ class rule_engine:
         self.Schema = []
         self.Groundings = {}
         self.Types = {}
+
+    def interpreter(self, file):
+        primitive_procedures = [
+            ["match?", self.matchRule],
+        ]
+        interpreter = scheme.RegularInterpreter()
+        environment = interpreter.get_environment()
+
+        ## add the python callbacks
+        for name, procedure in primitive_procedures:
+            installPythonFunction(name, procedure, environment)
+
+        ## open the file and read it
+        f_handle = open(file, 'r')
+        text = f_handle.read()
+        
+        print interpreter.eval(parser.parse(text))
+        f_handle.close()
+
+    def parse_rulefile(self, rule_file):
+        self.interpreter('analysis/prep-rules.scm')
         
     def run_rules(self):
-        ## self.parse_rulefile('')
-        ## self.test_rule_parser()
-        ## self.test_prep_rule()
+        self.parse_rulefile('')
+        self.test_rule_parser()
+        self.test_prep_rule()
+        
         self.setType('$prep', 'preposition')
         self.setType('$in_sent', 'sentence')
         
@@ -105,7 +130,8 @@ class rule_engine:
             ground_2 = self.Groundings[ground_2]
             
             self.hypergraph.add_edge(ground_1, ground_2, edge_data=[data], edge_type=type, with_merge=False)
-        
+
+
     def matchRule(self, rule_set):
         results = []
         state   = None
@@ -194,6 +220,9 @@ class rule_engine:
         return output_stack
     
     def lemma(self, word, grounding):
+        debug(word)
+        debug(grounding)
+        debug(self.Groundings)
         if self.isVariable(word) and self.isGround(word):
             groundedWord = self.Groundings[word]
             stemmed = self.stemmer.stem_word(groundedWord)
@@ -319,6 +348,7 @@ class prepRules(rule_engine):
         
         match = self.matchRule(rule)
         if match:
+            self.Groundings = match[1]
             self.lemma('$var1', '$word1')
 
             concat = '_'.join([self.Groundings['$word1'], self.Groundings['$prep']])
@@ -361,7 +391,7 @@ class tripleRules(rule_engine):
             ## _subj(be,$var0) ^ _obj(be,$var1) ^ $prep($var0,$var2)
             'triple_rule_1' : [['_subj','$be','$var0'],['_obj', '$be','$var1'],['$prep','$var0','$var2']],
             'triple_rule_2' : [['_predadj','$var1','$var0'],['$prep','$var1','$var2']], 
-            'triple_rule_3' : [['!_subj','$x','$y'], ["_obj","$var0","$var1"], ["$prep","$var0","$var2"]],
+            'triple_rule_3' : [['_subj','$x','$y'], ["_obj","$var0","$var1"], ["$prep","$var0","$var2"]],
             'triple_rule_4' : [['_obj','$in_sent','$var1'], ["_iobj","$in_sent","$var2"]],
             'triple_rule_6' : [["_subj","$be","$var1"], ["_obj","$be","$var2"]],
         }

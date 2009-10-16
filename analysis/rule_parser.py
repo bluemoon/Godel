@@ -9,6 +9,7 @@ def verifyLen(t):
         if t1len != t.len:
             raise ParseFatalException, \
                   "invalid data of length %d, expected %s" % (t1len, t.len)
+        
     return t[1]
 
 
@@ -35,7 +36,7 @@ display = LBRK + simpleString + RBRK
 string_ = Optional(display) + simpleString
 
 sexp = Forward()
-sexpList = Group(LPAR + ZeroOrMore(sexp) + RPAR)
+sexpList = LPAR + Group(ZeroOrMore(sexp)) + RPAR
 sexp << ( string_ | sexpList )
 
 def parse_file(file):
