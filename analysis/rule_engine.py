@@ -30,67 +30,87 @@ class rule_engine:
         self.Groundings = {}
         self.Types = {}
 
-    def interpreter(self, files):
+    def interpreter(self, File):
         vm = VM('r5rs')
+        
         primitive_procedures = [
             ["match-rule?", self.matchRule],
             ["rule-applied", self.rule_applied],
             ["lemma", self.lemma],
             ["in-sentence?", self.inSentence],
-            #["convert-to-phrase", self.convert],
             ["make-link", self.addLink],
             ["reset-scope", self.reset],
             ["ground", self.ground_variable],
             ["set-link-type", self.setType],
+            ["make-phrase", self.makePhrase],
+            ["output-phrase", self.Output],
+            ["get-groundings", self.getGroundings],
+            ["has-feature?", self.hasFeature]
         ]
         
         
         for name, procedure in primitive_procedures:
             vm.define(name, vm.toscheme(procedure))
-
-        ## run the c primitive
-        for file in files:
-            vm.load(file)
+    
+        vm.load(File)
 
     def parse_rulefile(self, rule_file):
-        self.interpreter(['analysis/prep-rules.scm', 'analysis/triple-rules.scm'])
+        self.interpreter(rule_file)
         
     def run_rules(self):
+        self.parse_rulefile('analysis/prep-rules.scm')
+        self.parse_rulefile('analysis/triple-rules.scm')
         
-                
-        self.setType('$prep', 'preposition')
-        self.setType('$in_sent', 'sentence')
+    def getGroundings(self):
+        #debug(self.Groundings)
+        pass
         
-        prep = prepRules(self.tag_stack, self.hypergraph)
-        triples = tripleRules(self.tag_stack, self.hypergraph)
+    def Output(self, Ground1, Ground2, Ground3):
+        ground_1 = None
+        ground_2 = None
+        ground_3 = None
         
-        #debug(prep.run_rules())
-        debug(triples.run_rules())
-        self.parse_rulefile('')
-        
-    def test_rule_parser(self):
-        self.ground_variable('$be', 'be')
-        test_rule = [['_obj','$be','$var1'], ['$prep','$var1','$var2']]
-        
-        self.matchRule(test_rule)
+        if self.isGround(Ground1) and self.isVariable(Ground1):
+            ground_1 = self.Groundings[Ground1]
+        elif not self.isVariable(Ground1):
+            ground_1 = Ground1
+        if self.isGround(Ground2) and self.isVariable(Ground2):
+            ground_2 = self.Groundings[Ground2]
+        elif not self.isVariable(Ground2):
+            ground_2 = Ground2
+        if self.isGround(Ground3) and self.isVariable(Ground3):
+            ground_3 = self.Groundings[Ground3]
+        elif not self.isVariable(Ground3):
+            ground_3 = Ground3
 
-        self.reset()
-
-    def test_prep_rule(self):
-        self.setType('$prep', 'preposition')
-        self.ground_variable('$be', 'be')
-        test_rule = [['$prep','$var1','$var2']]
-        
-        self.matchRule(test_rule)
-
+        if ground_1 and ground_2 and ground_3:
+            debug([ground_1, ground_2, ground_3],prefix="triple")
+            
     def rule_applied(self, rule):
-        debug(self.output)
         debug(rule, prefix="rule applied from scheme")
-        
+        debug(self.output, prefix="Groundings")
+
+    def hasFeature(self, feature):
+        for x in self.hypergraph.edge_by_type('feature'):
+            head, cur_tag, tail = x
+            if cur_tag == feature:
+                return True
+
+        return False
+    
+    def makePhrase(self, Ground1, Ground2):
+        if self.isGround(Ground1) and self.isGround(Ground2):
+            ground_1 = self.Groundings[Ground1]
+            ground_2 = self.Groundings[Ground2]
+            phrase = '_'.join([ground_1, ground_2])
+            self.ground_variable('$phrase', phrase)
+            
     def reset(self):
         ## reset the groundings
         del self.Groundings
+        del self.Types
         self.Groundings = {}
+        self.Types = {}
         
     def isGround(self, variable):
         ## is ground
@@ -143,7 +163,8 @@ class rule_engine:
 
 
     def matchRule(self, rule_set):
-        debug(rule_set)
+        #debug(rule_set)
+        
         results = []
         state   = None
         stack   = []
@@ -155,9 +176,6 @@ class rule_engine:
             results.append(matches[0])
             state = matches[1]
             
-        #debug(rule_set)
-        #debug(results)
-        #debug(state)
         
         ## match it outright
         if rule_set == results:
@@ -212,9 +230,11 @@ class rule_engine:
         return output_stack
     
     def lemma(self, word, grounding):
-        debug(word)
-        debug(grounding)
-        debug(self.Groundings)
+        self.Groundings = self.output
+        #debug(word)
+        #debug(grounding)
+        #debug(self.Groundings)
+        
         if self.isVariable(word) and self.isGround(word):
             groundedWord = self.Groundings[word]
             stemmed = self.stemmer.stem_word(groundedWord)
@@ -223,6 +243,7 @@ class rule_engine:
             stemmed = self.stemmer.stem_word(word)
             self.ground_variable(grounding, stemmed)
 
+        
             
     def compareRule(self, tag, var_1, var_2):
         ## check to see if we are ground and it is a var
@@ -262,7 +283,7 @@ class rule_engine:
             if self.hypergraph.has_edge_type(tagType):
                 for x in self.hypergraph.edge_by_type(tagType):
                     head, cur_tag, tail = x
-                    edge_data = cur_tag[0]                    
+                    edge_data = cur_tag[0]
                     self.ground_variable(tag, edge_data)
                     self.current = (head, edge_data, tail)
                     yield (head, edge_data, tail)

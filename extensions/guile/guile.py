@@ -4,6 +4,7 @@ import sys
 import os.path
 
 sys.path.append('/home/bluemoon/Sources/schemepy/')
+
 from schemepy.types import *
 from schemepy.exceptions import *
 
@@ -19,6 +20,8 @@ if lib is None:
 path = os.path.abspath(os.path.join(os.path.split(__file__)[0], "_guilehelper.so"))
 _guilehelper = cdll.LoadLibrary(path)
 
+
+## Get the version from the helper
 version_helper = (_guilehelper.guile_major_version(), _guilehelper.guile_minor_version())
 ver_lib    = {(1, 6): '12', (1, 8): '17'}[version_helper]
 
@@ -437,13 +440,6 @@ def scm_py_call(py_callable, shallow, vm, scm_args):
 scm_py_call_t = CFUNCTYPE(SCM, SCM, SCM, SCM, SCM)
 scm_py_call = scm_py_call_t(scm_py_call)
 
-custom = {}
-
-def pyCallCustom(name, args):
-    pass
-
-pyCallCustom_t = CFUNCTYPE(SCM, SCM)
-pyCallCustom = pyCallCustom_t(pyCallCustom)
 
 class VM(object):
     """VM for guile.
@@ -508,6 +504,7 @@ class VM(object):
         """
         if not isinstance(value, SCM):
             raise TypeError, "Value to define should be a Scheme value."
+        
         name = Symbol(name)
         guile.scm_define(self.toscheme(name), value)
 
@@ -528,6 +525,7 @@ class VM(object):
         """\
         Load a scheme script file.
         """
+        
         self.catch_exception_do(exception_body_load, self.toscheme(filename))
 
     @ensure_scope
@@ -763,19 +761,6 @@ class VM(object):
         self._scm_py_call = guile.scm_c_make_gsubr("scm-py-call", 4, 0, 0,
                                                    scm_py_call)
         self._scm_py_lambda_identifier = SCM.toscm(Symbol("#{schemepy python callable}#"))
-
-    def pythonToScheme(self, name, function):
-        #function.func_code.co_varnames
-        #arguments = function.func_code.co_argcount -1 
-        #Custom_t = CFUNCTYPE(SCM)
-        #Custom = Custom_t(function)
-        #py_call = guile.scm_c_define_gsubr(name, arguments, 0, 0, Custom)
-        print name
-        py_call = guile.scm_c_make_gsubr("py-special-function", 2, 0, 0, pyCallCustom)
-        lambda_wrapper = guile.scm_c_eval_string("\
-        (define %s (lambda args (py-special-function '%s args)))" % (name, name))
-        
-       
 
 
 class PythonSMOB(c_void_p):
