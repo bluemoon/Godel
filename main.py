@@ -42,7 +42,7 @@ class main:
             self.source = ['the quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
                            'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.',
                            'Madrid is a city in Spain.', 'The color of the sky is blue.',
-                           'The capital of Germany is Berlin.', 'Pottery is made from clay.']
+                           'The capital of Germany is Berlin.', 'Pottery is made from clay.', 'chomsky, fetch me two cookies.']
             
         if self.options.engine == 'relex':
             from engines.relex import relex
