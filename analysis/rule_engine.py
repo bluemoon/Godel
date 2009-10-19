@@ -18,7 +18,7 @@ from extensions.guile.guile import guile
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
-
+        ## nltk stemmer
         self.stemmer  = PorterStemmer()
 
         self.state_stack = []
@@ -30,7 +30,7 @@ class rule_engine:
         self.Groundings = {}
         self.Types = {}
 
-    def interpreter(self, File):
+    def interpreter(self, FileList):
         vm = VM('r5rs')
         
         primitive_procedures = [
@@ -45,21 +45,21 @@ class rule_engine:
             ["make-phrase", self.makePhrase],
             ["output-phrase", self.Output],
             ["get-groundings", self.getGroundings],
-            ["has-feature?", self.hasFeature]
+            ["has-feature?", self.hasFeature],
+            ["has-flag?", self.hasFlag],
         ]
         
         
         for name, procedure in primitive_procedures:
             vm.define(name, vm.toscheme(procedure))
-    
-        vm.load(File)
 
-    def parse_rulefile(self, rule_file):
-        self.interpreter(rule_file)
-        
+        for File in FileList:
+            vm.load(File)
+
     def run_rules(self):
-        self.parse_rulefile('analysis/prep-rules.scm')
-        self.parse_rulefile('analysis/triple-rules.scm')
+        files = ['analysis/prep-rules.scm', 'analysis/triple-rules.scm']
+        self.interpreter(files)
+
         
     def getGroundings(self):
         #debug(self.Groundings)
@@ -87,9 +87,19 @@ class rule_engine:
             debug([ground_1, ground_2, ground_3],prefix="triple")
             
     def rule_applied(self, rule):
-        debug(rule, prefix="rule applied from scheme")
-        debug(self.output, prefix="Groundings")
+        #debug(rule, prefix="rule applied from scheme")
+        #debug(self.output, prefix="Groundings")
+        pass
 
+    def hasFlag(self, flag):
+        for x in self.hypergraph.edge_by_type('feature'):
+            debug(x)
+            head, cur_tag, tail = x
+            if cur_tag == flag:
+                return True
+
+        return False
+    
     def hasFeature(self, feature):
         for x in self.hypergraph.edge_by_type('feature'):
             head, cur_tag, tail = x

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import inspect
 import time
-import pylab
+#import pylab
 
 TERM_GREEN   = "\033[1;32m"
 TERM_ORANGE  = '\033[93m'
@@ -54,6 +54,8 @@ def debug(obj, prefix=None):
         
     DEBUG_CALL_LIST.append({'method':caller_method, 'time':CALL_TIME})
 
+
+'''
 def graphDebugTimes():
     callIterator = 0
     totalCalls   = []
@@ -71,3 +73,4 @@ def graphDebugTimes():
 
     pylab.plot(totalCalls, totalDelta)
     pylab.savefig('debug-time-callgraph')
+'''

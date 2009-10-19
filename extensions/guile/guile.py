@@ -803,6 +803,7 @@ class PythonSMOB(c_void_p):
 		Py_DECREF(PyObj_FromPtr(pypointer))
 
 		return 0
+            
 	free_cfunc = CFUNCTYPE(c_int, c_void_p)
 
         @staticmethod
@@ -820,8 +821,8 @@ class PythonSMOB(c_void_p):
 
         @staticmethod
 	def get(smob):
-		pypointer = guile.scm_smob_data(smob)
-		return PyObj_FromPtr(pypointer)
+		pyPointer = guile.scm_smob_data(smob)
+		return PyObj_FromPtr(pyPointer)
 
 PythonSMOB.free = PythonSMOB.free_cfunc(PythonSMOB.free)
 PythonSMOB.str  = PythonSMOB.str_cfunc(PythonSMOB.str)

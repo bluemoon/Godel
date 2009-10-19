@@ -31,7 +31,7 @@ class main:
 
             data_folder = self.s.Get('general.data_directory')
             logParser = irc_logParser()
-            self.source = logParser.loadLogs(data_folder + 'logs/2009-08-1*', limit=20)
+            self.source = logParser.loadLogs(data_folder + 'logs/2009-08-1*', limit=120)
 
             assert len(self.source) > 0, 'irc source is invalid.'
             

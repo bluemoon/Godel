@@ -57,7 +57,21 @@
 (define (triple-rule-4)
   (set-link-type "$in_sent" "sentence")
   (if (match-rule? '((_obj $in_sent $var1) (_iobj $in_sent $var2)))
-      (rule-applied "triple-rule-4")
+      (begin
+        (output-phrase "$prep" "$var2" "$var1")
+        (rule-applied "triple-rule-4")
+        )
+      )
+  (reset-scope)
+  )
+
+(define (triple-rule-5)
+  (set-link-type "$in_sent" "sentence")
+  (if (match-rule? '((_psubj $in_sent $var1) (_pobj $in_sent $var2)))
+      (begin
+        (output-phrase "$prep" "$var2" "$var1")
+        (rule-applied "triple-rule-5")
+        )
       )
   (reset-scope)
   )
