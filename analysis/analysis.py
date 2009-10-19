@@ -45,8 +45,9 @@ class relex_analysis:
     
     def each_word(self, sentence):
         word_set = []
+        if len(sentence[0]) < 0:
+            return False
         
-        assert len(sentence[0]) > 0
         sentence = nltk.word_tokenize(sentence[0])
         tagged = self.tagger.tag(sentence)
 
@@ -65,8 +66,9 @@ class relex_analysis:
             ## per sentence instances
             hg = HG(sentence)
 
-            
             word_set = self.each_word(sentence)
+            if not word_set:
+                return
             
             features = self.relex.parse_features(sentence)
             frames   = self.relex.parse_frames(sentence)

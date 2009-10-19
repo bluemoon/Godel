@@ -73,6 +73,7 @@ class relex_analyze:
     def parse_features(self, sentence):
         feature_output = []
         features = sentence[1]
+        
         for deps in features.dependencies:
             deps.replace(' ','')
                         

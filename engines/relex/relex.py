@@ -75,8 +75,13 @@ class relex:
             dependencies = framing_rules[0]
             frames = framing_rules[1]
             f_ante = self._before_and_after(frames, FRAME_STRING)
-            frames = f_ante[0]
-            ## and we use our container
-            r = relationships(dependencies, frames)
+            if f_ante:
+                frames = f_ante[0]
+                
+                ## and we use our container
+                r = relationships(dependencies, frames)
+            else:
+                r = None
+                
             return r
         

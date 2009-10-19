@@ -8,7 +8,6 @@
         (make-phrase "$word1" "$prep")
         (output-phrase "$phrase" "$var2" "$var0")
         (rule-applied "triple-rule-0")
-        (get-groundings)
         )
       )
   (reset-scope)
@@ -42,8 +41,8 @@
   )
 (define (triple-rule-3)
   (set-link-type "$prep" "preposition")
-  (if (and (eqv? match-rule? '((_obj $var0 $var1 ($prep $var0 $var2))) #t)
-           (eqv? (has-feature? "_subj") #f))
+  (if (and (eqv? (match-rule? '((_obj $var0 $var1) ($prep $var0 $var2)))) #t)
+           (eqv? (has-feature? "_subj") #f)
       (begin
         (lemma "$var0" "$word0")
         (make-phrase "$word0" "$prep")
@@ -58,7 +57,8 @@
   (set-link-type "$in_sent" "sentence")
   (if (match-rule? '((_obj $in_sent $var1) (_iobj $in_sent $var2)))
       (begin
-        (output-phrase "$prep" "$var2" "$var1")
+        (lemma "$in_sent" "$phrase")
+        (output-phrase "$phrase" "$var2" "$var1")
         (rule-applied "triple-rule-4")
         )
       )
@@ -80,8 +80,28 @@
   (ground "$be" "be")
   (if (match-rule? '((_subj $be $var1) (_obj $be $var2)))
       (begin
-        (output-phrase "isa" "$var2" "$var1")
-        (rule-applied "triple-rule-6")
+        (if (and (eqv? (has-flag? "HYP-FLAG" "be") #f
+                 (eqv? (has-flag? "DEFINITE-FLAG" "$var2") #f)))
+            (begin
+              (output-phrase "isa" "$var2" "$var1")
+              (rule-applied "triple-rule-6")            
+              )
+            )
+        )
+      )
+  (reset-scope)
+  )
+
+(define (triple-rule-7)
+  (ground "$be" "be")
+  (if (match-rule? '((_subj $be $var1) (_obj $be $var2)))
+      (begin
+        (if (has-flag? "HYP-FLAG" "be")
+            (begin
+              (output-phrase "hypothetical_isa" "$var2" "$var1")
+              (rule-applied "triple-rule-7")            
+              )
+            )
         )
       )
   (reset-scope)
@@ -89,8 +109,8 @@
 
 (define (triple-rule-8)
   (set-link-type "$prep" "preposition")
-  (if (and (eqv? match-rule? '((_subj $var0 $var1 ($prep $var0 $var2))) #t)
-           (eqv? (has-feature? "_obj") #f))
+  (if (and (eqv? match-rule? '((_subj $var0 $var1) ($prep $var0 $var2))) #t)
+           (eqv? (has-feature? "_obj") #f)
       (begin
         (lemma "$var0" "$word0")
         (make-phrase "$word0" "$prep")
@@ -99,7 +119,7 @@
         )
       )
   (reset-scope)
-  )
+)
 
 (define (run-rules)
   (triple-rule-0)
@@ -107,6 +127,10 @@
   (triple-rule-2)
   (triple-rule-3)
   (triple-rule-4)
+  (triple-rule-5)
   (triple-rule-6)
+  (triple-rule-7)
 )
 (run-rules)
+
+

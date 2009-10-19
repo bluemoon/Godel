@@ -18,15 +18,14 @@ from extensions.guile.guile import guile
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
+        self.hypergraph  = hypergraph
         ## nltk stemmer
         self.stemmer  = PorterStemmer()
 
         self.state_stack = []
         self.stack = []
 
-        self.hypergraph = hypergraph
-        
-        self.Schema = []
+        ## local variables
         self.Groundings = {}
         self.Types = {}
 
@@ -48,15 +47,11 @@ class rule_engine:
             ["has-feature?", self.hasFeature],
             ["has-flag?", self.hasFlag],
         ]
-        
-        
         for name, procedure in primitive_procedures:
             vm.define(name, vm.toscheme(procedure))
 
         for File in FileList:
             vm.load(File)
-
-        del vm
         
     def run_rules(self):
         files = ['analysis/prep-rules.scm', 'analysis/triple-rules.scm']
@@ -68,6 +63,11 @@ class rule_engine:
         pass
         
     def Output(self, Ground1, Ground2, Ground3):
+        if not hasattr(self, "output"):
+            return
+        
+        self.Groundings = self.output
+        
         ground_1 = None
         ground_2 = None
         ground_3 = None
@@ -85,20 +85,27 @@ class rule_engine:
         elif not self.isVariable(Ground3):
             ground_3 = Ground3
 
+        
         if ground_1 and ground_2 and ground_3:
-            debug([ground_1, ground_2, ground_3],prefix="triple")
+            debug([ground_1, ground_2, ground_3], prefix="triple")
             
     def rule_applied(self, rule):
         #debug(rule, prefix="rule applied from scheme")
-        #debug(self.output, prefix="Groundings")
+        #if hasattr(self, "output"):
+        #    debug(self.output, prefix="Groundings")
         pass
-
-    def hasFlag(self, flag):
-        for x in self.hypergraph.edge_by_type('feature'):
-            debug(x)
+    
+    def hasFlag(self, flag, variable):
+        for x in self.hypergraph.edge_by_type('feature'):            
             head, cur_tag, tail = x
-            if cur_tag == flag:
-                return True
+            if cur_tag[0] == flag:
+                if self.isVariable(variable) and self.isGround(variable):
+                    value = self.Groundings[variable]
+                else:
+                    value = variable
+                    
+                if head == value:
+                    return True
 
         return False
     
@@ -111,11 +118,14 @@ class rule_engine:
         return False
     
     def makePhrase(self, Ground1, Ground2):
-        if self.isGround(Ground1) and self.isGround(Ground2):
-            ground_1 = self.Groundings[Ground1]
-            ground_2 = self.Groundings[Ground2]
-            phrase = '_'.join([ground_1, ground_2])
-            self.ground_variable('$phrase', phrase)
+        if hasattr(self, "output"):
+            self.Groundings = self.output
+
+            if self.isGround(Ground1) and self.isGround(Ground2):
+                ground_1 = self.Groundings[Ground1]
+                ground_2 = self.Groundings[Ground2]
+                phrase = '_'.join([ground_1, ground_2])
+                self.ground_variable('$phrase', phrase)
             
     def reset(self):
         ## reset the groundings
@@ -187,7 +197,8 @@ class rule_engine:
             ## find and match is a generator
             results.append(matches[0])
             state = matches[1]
-            
+
+        
         
         ## match it outright
         if rule_set == results:
@@ -242,6 +253,9 @@ class rule_engine:
         return output_stack
     
     def lemma(self, word, grounding):
+        if not hasattr(self, "output"):
+            return
+        
         self.Groundings = self.output
         #debug(word)
         #debug(grounding)
@@ -283,7 +297,7 @@ class rule_engine:
         if self.isVariable(tag) and self.isGround(tag):
             self.compareGround(tag, 1)
                 
-        elif self.isVariable(var_2) and not self.isGround(var_2):
+        elif self.isVariable(tag) and not self.isGround(tag):
             self.ground_variable(tag, self.current[1])
         
         return True
@@ -305,12 +319,8 @@ class rule_engine:
                         
         
         for x in self.hypergraph.edge_by_type('feature'):
-            if not isinstance(tag, list):
-                if tag.startswith('!') and x[1][0] == tag[1:]:
-                    self.rule_fail = True
-                    yield False
-                    
-                elif tag.startswith('$'):
+            if not isinstance(tag, list):        
+                if tag.startswith('$'):
                     head, tag, tail = x
                     self.current = (head, tag[0], tail)
                     yield self.current
