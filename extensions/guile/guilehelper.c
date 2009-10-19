@@ -262,7 +262,7 @@ void scm_set_smob_data(SCM x, void* p) {
 }
 
 void* scm_smob_data(SCM x) {
-	return (void*)SCM_SMOB_DATA(x);
+  return (void*)SCM_SMOB_DATA(x);
 }
 
 SCM scm_return_newsmob(scm_t_bits tag, void* data) {

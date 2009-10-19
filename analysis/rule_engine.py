@@ -56,6 +56,8 @@ class rule_engine:
         for File in FileList:
             vm.load(File)
 
+        del vm
+        
     def run_rules(self):
         files = ['analysis/prep-rules.scm', 'analysis/triple-rules.scm']
         self.interpreter(files)

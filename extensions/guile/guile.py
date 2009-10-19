@@ -281,6 +281,9 @@ else:
 	guile.scm_is_null    = _guilehelper._scm_is_null
 
 
+guile.scm_smob_data.argstypes = [SCM]
+guile.scm_smob_data.restype = c_int
+
 # Helper functions
 guile.scm_c_real_part.argstypes = [SCM]
 guile.scm_c_real_part.restype  = c_double
@@ -770,7 +773,7 @@ class PythonSMOB(c_void_p):
 	def register():
 		# Create the SMOB type
 		PythonSMOB.tag = guile.scm_make_smob_type("PythonSMOB", 0)
-		guile.scm_set_smob_free( PythonSMOB.tag, PythonSMOB.free)
+                #guile.scm_set_smob_free( PythonSMOB.tag, PythonSMOB.free)
 		guile.scm_set_smob_print(PythonSMOB.tag, PythonSMOB.str)
                 
 	register = staticmethod(register)	
@@ -780,7 +783,7 @@ class PythonSMOB(c_void_p):
 		"""
 		Create a new PythonSMOB which wraps the given object.
 		"""
-		pypointer = id(pyobj)	
+		pypointer = id(pyobj)
 
 		# Increase the reference count to the object	
 		Py_INCREF(pyobj)
@@ -797,10 +800,11 @@ class PythonSMOB(c_void_p):
 		#print "PythonSMOB.free"
 
 		# Get the python object we are pointing too
-		pypointer = guile.scm_smob_data(smob)
-
-		# Decrease the reference to the pypointer
-		Py_DECREF(PyObj_FromPtr(pypointer))
+		pyPointer = _guilehelper.scm_smob_data(guile.scm_from_int32(smob))
+                
+                if bool(pyPointer):
+                    # Decrease the reference to the pypointer
+                    Py_DECREF(PyObj_FromPtr(pyPointer))
 
 		return 0
             

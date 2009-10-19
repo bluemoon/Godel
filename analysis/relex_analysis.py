@@ -90,11 +90,13 @@ class relex_analyze:
             
             if ',' in parameters:
                 comma = parameters.index(',')
+            
+                left_param = parameters[:comma]
+                right_param = parameters[comma+2:]
                 
-            left_param = parameters[:comma]
-            right_param = parameters[comma+2:]
-
-            feature_output.append((feature, left_param, right_param))
+                feature_output.append((feature, left_param, right_param))
+            #else:
+            #    feature_output.append((feature, parameters))
 
         return feature_output
     
