@@ -127,12 +127,14 @@ class rule_engine:
                 phrase = '_'.join([ground_1, ground_2])
                 self.ground_variable('$phrase', phrase)
             
-    def reset(self):
+    def reset(self, noType=False):
         ## reset the groundings
         del self.Groundings
-        del self.Types
         self.Groundings = {}
-        self.Types = {}
+
+        if not noType:
+            del self.Types
+            self.Types = {}
         
     def isGround(self, variable):
         ## is ground
@@ -150,7 +152,8 @@ class rule_engine:
             return True
         else:
             return False
-        
+
+    ## Type specifics
     def isType(self, variable):
         if self.Types.has_key(variable):
             return True
@@ -165,7 +168,8 @@ class rule_engine:
     
     def setType(self, variable, Type):
         self.Types[variable] = Type
-        
+
+    ## Grounding specifics
     def compareGround(self, ground, idx):
         if self.Groundings[ground] != self.current[idx]:
             return False
@@ -367,12 +371,13 @@ class rule_engine:
                                 self.stack.append((tag, var_1, var_2))
                                 ## self.match_stack.append(self.groundings)
                                 yield ([tag, var_1, var_2], self.Groundings)
+
                             else:
                                 ## reset the groundings
-                                self.reset()
+                                self.reset(noType=True)
                             #return 
                     else:
-                        self.reset()
+                        self.reset(noType=True)
                         
 
 
