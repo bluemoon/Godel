@@ -69,12 +69,11 @@ class HG:
                                        with_merge=False)
             
     def analysis(self):
-        #self.atoms.to_dot_file(primary_type='sentence')
         self.sentence_analyze()
         
     def sentence_analyze(self):
-        ##        self.atoms.to_dot_file(primary_type='sentence')
-        pass
+        self.atoms.to_dot_file(primary_type='sentence')
+    
     
 
 

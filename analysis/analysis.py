@@ -83,13 +83,14 @@ class relex_analysis:
             
             if self.options.graph_frame:
                 hg.frames_in(frames)
+
+            RE = rule_engine(features, hg.get_hypergraph())
+            RE.run_rules()
             
             if self.options.graph:
                 hg.analysis()
 
-            RE = rule_engine(features, hg.get_hypergraph())
-            RE.run_rules()
-
+            
             self.generate_mlnFile(frames, sentence)
 
     def generate_mlnFile(self, in_data, sentence):

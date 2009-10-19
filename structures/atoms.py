@@ -600,7 +600,7 @@ class Atoms:
                 if len(edge[1]) == 1:
                     label = str(edge[1][0])
                 else:
-                    label = ','.join(edge[1])
+                    label = ','.join(map(str, edge[1]))
                         
                 if primary_type != None and edge_type == primary_type:
                     head = pydot.Node(edge[2], shape='doublecircle')
@@ -626,7 +626,7 @@ class Atoms:
         else:
             file_name = self_hash
             
-        file = os.path.join('data/graphs', '%s-map.svg' % file_name)
+        file = os.path.join('data/graphs', '%s-map.svg' % file_name.strip().replace('/','')[:100])
         if not os.path.exists(file):
             callgraph.write_svg(file)
 

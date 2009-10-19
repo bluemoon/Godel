@@ -34,13 +34,15 @@ class main:
 
             data_folder = self.s.Get('general.data_directory')
             logParser = irc_logParser()
-            self.source = logParser.loadLogs(data_folder + 'logs/2009-08-1*', limit=600)
+            self.source = logParser.loadLogs(data_folder + 'logs/2009*', limit=600)
 
             assert len(self.source) > 0, 'irc source is invalid.'
             
-        elif self.options.source == 'sentence':
+        elif self.options.source == 'tests':
             self.source = ['the quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
-                           'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.']
+                           'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.',
+                           'Madrid is a city in Spain.', 'The color of the sky is blue.',
+                           'The capital of Germany is Berlin.', 'Pottery is made from clay.']
             
         if self.options.engine == 'relex':
             from engines.relex import relex

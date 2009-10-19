@@ -89,6 +89,9 @@ class rule_engine:
         if ground_1 and ground_2 and ground_3:
             debug([ground_1, ground_2, ground_3], prefix="triple")
             
+            self.hypergraph.add_edge(ground_2, ground_3,\
+            edge_data=[ground_1], edge_type='triple', with_merge=False)
+            
     def rule_applied(self, rule):
         #debug(rule, prefix="rule applied from scheme")
         #if hasattr(self, "output"):
@@ -96,6 +99,7 @@ class rule_engine:
         pass
     
     def hasFlag(self, flag, variable):
+        ## do we have a given flag
         for x in self.hypergraph.edge_by_type('feature'):            
             head, cur_tag, tail = x
             if cur_tag[0] == flag:
@@ -189,21 +193,16 @@ class rule_engine:
 
 
     def matchRule(self, rule_set):
-        #debug(rule_set)
-        
         results = []
         state   = None
         stack   = []
-        output  = []
         
         for matches in self.match_rule_generator(rule_set):
             ## match to list then append the output
             ## find and match is a generator
             results.append(matches[0])
             state = matches[1]
-
-        
-        
+            
         ## match it outright
         if rule_set == results:
             self.output = matches[1]
