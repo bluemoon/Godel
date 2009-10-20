@@ -1,7 +1,9 @@
 from optparse import OptionParser
 from settings import settings
+from processing.sentence import sentence
 from utils.debug import *
 from utils.progress_bar import ProgressBar
+from utils.irc import irc
 
 import sys
 
@@ -22,12 +24,16 @@ class main:
         self.parser.add_option("--without-graph", action="store_false", dest="graph", default=True)
         self.parser.add_option("--with-graph-frame", action="store_true", dest="graph_frame", default=False)
         self.parser.add_option("--with-graph-tags", action="store_false", dest="graph_tags", default=True)
-        
+        self.parser.add_option("--irc", action="store_true", dest="irc", default=False)
         (self.options, self.args) = self.parser.parse_args()
         
     def main(self):
         self.source = None
         self.to_analyze = []
+        
+        if self.options.irc:
+            irc()
+            return
         
         if self.options.source == 'irc-logs':
             from input.irc_log import irc_logParser
@@ -43,40 +49,12 @@ class main:
                            'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.',
                            'Madrid is a city in Spain.', 'The color of the sky is blue.',
                            'The capital of Germany is Berlin.', 'Pottery is made from clay.', 'chomsky, fetch me two cookies.',
-                           'The sky is blue.']
-            
-        if self.options.engine == 'relex':
-            from engines.codecs.relex import relex
-            pb = ProgressBar(max_value=len(self.source), mode='fixed')
-            
-            count = 0
-            
-            r = relex.relex()
-            oldprog = str(pb)
-            ## then process all of the sentences
-            for sentences in self.source:
-                pb.increment_amount()
-                if oldprog != str(pb):
-                    print pb, "\r",
-                    sys.stdout.flush()
-                    oldprog = str(pb)
-                    
-                
-                sentence = r.process(sentences)
-                #debug(sentence)
-                parsed = r.parse_output(sentence)
-                ## tie the original sentence with the parsed one
-                self.to_analyze.append((sentences, parsed))
-                
-                count += 1
-        print 
-                
-        if self.options.analysis == 'relex-analysis':
-            assert len(self.to_analyze) > 0, 'nothing to analyze.'
-            
-            from analysis.analysis import relex_analysis
-            r = relex_analysis(self.options)
-            r.analyze(self.to_analyze)
+                           'The sky is blue.', 'what color is the sky?', 'chomsky, tell me whats on the new york times today.']
+
+
+        Sentence = sentence(self.options)
+        for current in self.source:
+            Sentence.process(current)
             
             
             

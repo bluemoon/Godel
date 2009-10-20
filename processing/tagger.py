@@ -14,13 +14,30 @@ def backoff_tagger(tagged_sents, tagger_classes, backoff=None):
  
     return backoff
 
+
+def tagger_loaded(function):
+    def wrap(*args):
+        instance = args[0]
+        if instance.tagger == None:
+            instance.tagger = instance.load_tagger()
+
+        return function(*args)
+    return wrap
+
 class tagger:
+    tagger = None
+    
+    @tagger_loaded
+    def tag(self, sentence):
+        tagged = self.tagger.tag(sentence)
+        return tagged
+    
     @persistent_memoize
     def load_tagger(self, sentence_count=20000):
         brownc_sents = nltk.corpus.brown.tagged_sents()[:sentence_count]
         raubt_tagger = backoff_tagger(brownc_sents, [nltk.tag.AffixTagger,
-        nltk.tag.UnigramTagger, nltk.tag.BigramTagger, nltk.tag.TrigramTagger])
- 
+                                                 nltk.tag.UnigramTagger, nltk.tag.BigramTagger, nltk.tag.TrigramTagger])
+    
         templates = [
             brill.SymmetricProximateTokensTemplate(brill.ProximateTagsRule, (1,1)),
             brill.SymmetricProximateTokensTemplate(brill.ProximateTagsRule, (2,2)),
@@ -36,5 +53,7 @@ class tagger:
  
         trainer = brill.FastBrillTaggerTrainer(raubt_tagger, templates)
         braubt_tagger = trainer.train(brownc_sents, max_rules=100, min_score=3)
+        
         return braubt_tagger
  
+

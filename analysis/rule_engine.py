@@ -16,7 +16,6 @@ import sys
 ## Frame rules
 ## Color -> Attribute
 
-
 class rule_engine:
     def __init__(self, tag_stack, hypergraph):
         self.tag_stack   = tag_stack
@@ -60,7 +59,6 @@ class rule_engine:
         files = ['analysis/prep-rules.scm', 'analysis/triple-rules.scm']
         self.interpreter(files)
 
-        
     def getGroundings(self):
         #debug(self.Groundings)
         pass
@@ -145,7 +143,7 @@ class rule_engine:
             return True
         else:
             return False
-        
+    
     def getType(self, variable):
         if self.isType(variable):
             return self.Types[variable]
@@ -154,8 +152,6 @@ class rule_engine:
     
     def setType(self, variable, Type):
         self.Types[variable] = Type
-
-    
 
     ## Grounding specifics
     def compareGround(self, ground, idx):
@@ -232,7 +228,7 @@ class rule_engine:
                 output_stack.append((key, output))
                 
             self.reset()
-                
+            
         return output_stack
     
     def lemma(self, word, grounding):

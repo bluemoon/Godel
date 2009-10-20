@@ -4,8 +4,9 @@ from utils.debug import *
 from relex_analysis import relex_analyze
 from structures.containers import word
 from processing.tagger import tagger
-from hypergraph import HG
+#from engines.word_sense.word_sense import word_sense
 
+from hypergraph import HG
 from rule_engine import rule_engine
 
 import nltk
@@ -15,7 +16,7 @@ import hashlib
 import os
 
 class relex_analysis:
-    def __init__(self, options):
+    def __init__(self, options=None):
         self.relex = relex_analyze()
         self.tagger_class = tagger()
         self.tagger = self.tagger_class.load_tagger()
@@ -45,6 +46,7 @@ class relex_analysis:
     
     def each_word(self, sentence):
         word_set = []
+        
         if len(sentence[0]) < 0:
             return False
         
@@ -62,7 +64,10 @@ class relex_analysis:
         return word_set
             
     def analyze(self, sentences):
+        print sentences
         for sentence in sentences:
+            if not sentence:
+                continue
             if not sentence[0]:
                 continue
             
@@ -83,35 +88,22 @@ class relex_analysis:
             if False:
                 self.dump_to_file((features, frames))
 
-            
-            if self.options.graph_tags:
+
+            if not self.options:
                 hg.features_in(features)
-            
-            if self.options.graph_frame:
-                hg.frames_in(frames)
+            else:
+                if self.options.graph_tags:
+                    hg.features_in(features)
+                    
+            if self.options:
+                if self.options.graph_frame:
+                    hg.frames_in(frames)
 
             RE = rule_engine(features, hg.get_hypergraph())
             RE.run_rules()
-            
-            if self.options.graph:
-                hg.analysis()
 
-            
-            self.generate_mlnFile(frames, sentence)
-
-    def generate_mlnFile(self, in_data, sentence):
-        hashed_sentence = hashlib.sha224(sentence[0]).hexdigest()
-
-        path = os.path.join('data/mln/','mln-%s.db' % (hashed_sentence))
-        f_handle = open(path, 'w')
-        
-        for idx, value in enumerate(sentence[0].split(' ')):
-            succ = 'Successors(%d,%d)' % (idx+1,idx)
-            word = 'Word("%s", %d)' % (value,idx)
-            #tag  = 'Tag(%s:%s,)'
-            #debug(succ)
-            #debug(word)
-            
-        
+            if self.options:
+                if self.options.graph:
+                    hg.analysis()
 
         

@@ -35,6 +35,16 @@ class HG:
                 if find_tag == tag:
                     return character
 
+    def characterize_edge(self, tag_set):
+        characterizer = [
+            'pos',
+        ]
+        
+        for tag in tag_set:
+            head, data, tail = tag
+            edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
+                                       with_merge=False)
+                
     def get_hypergraph(self):
         return self.atoms
     
@@ -44,27 +54,35 @@ class HG:
             if word == search_word:
                 return (idx, word)
             
-            
     def features_in(self, features):
-        #debug(self.sentence[1])
+        types = ['pos']
+        
         for feature in features:
             tag  = feature[0]
             head = feature[1]
             dependent = feature[2]
             
             tag_type = self.characterize_tag(tag)
-            edge_type = (tag_type != None and tag_type or 'feature')
+            edgeType = (tag_type != None and tag_type or 'feature')
             ## debug(edge_type)
-            
+
+
+            if tag in types:
+                edge_type = tag
+            else:
+                edge_type = edgeType
+                
             edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
                                        with_merge=False)
         
     def frames_in(self, frames):
+
+        
         for frame in frames:
             tag = '_'.join(frame[1:2])
             head = frame[3]
             dependent = frame[4]
-            
+                
             edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type='frame',
                                        with_merge=False)
             

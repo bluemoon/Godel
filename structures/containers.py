@@ -1,5 +1,46 @@
 # -*- coding: utf-8 -*-
 #from tagger import braubt_tagger
+from collections import namedtuple
+
+class universal_container:
+    def _hasAttr(self, attribute):
+        if self.attributes.has_key(attribute):
+            return True
+        else:
+            return False
+        
+    def Get(self, attribute):
+        if self._hasAttr(attribute):
+            return self.attributes[attribute]
+        else:
+            return False
+        
+    def Set(self, attribute, value):
+        self.attributes[attribute] = value
+
+    def __repr__(self):
+        return self.attributes
+
+class universal_word(universal_container):
+    word = None
+    attributes = None
+    
+    def __init__(self, word):
+        self.word = word
+        self.attributes = {}
+    def __repr__(self):
+        return '<word:%s attr:%s>' % (self.word, self.attributes)
+        
+class universal_sentence(universal_container):
+    word_set   = None
+    attributes = None
+    
+    def __init__(self, word_set):
+        word_set = word_set
+        attributes = {}
+
+
+
 
 class tag:
     left  = None
@@ -25,6 +66,9 @@ class word:
         
     def __repr__(self):
         return '<word %s %s %d>' % (self.word, self.POS, self.idx)
+
+
+
 
 class sentence:
     has_left_wall  = None
@@ -70,22 +114,6 @@ class iterative_container:
             self.current_number += 1
             
         return self.hash_set[word]
-
-class svm_container:
-    words = []
-    tags  = []
-    
-    def __init__(self, container):
-        i = -1
-        for words in container.words:
-            self.words.append({word_container.add(words):container.tags[i]})
-            i += 1
-        #for tags in container.tags:
-        #    self.tags.append(tag_container.add(tags))
-            
-    def __repr__(self):
-        return '<svm tags: %s>' % (self.words)
-        #return '<svm words %s:tags %s>' % (len(self.words), len(self.tags))
 
 
 class relationships:
