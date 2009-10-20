@@ -39,14 +39,16 @@ class main:
             assert len(self.source) > 0, 'irc source is invalid.'
             
         elif self.options.source == 'tests':
-            self.source = ['the quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
+            self.source = ['The quick brown fox jumps over the lazy dog.', 'All cats eat mice.',
                            'The man did not go to the market.', 'what color is the fox?', 'Lisbon is the capital of Portugaul.',
                            'Madrid is a city in Spain.', 'The color of the sky is blue.',
-                           'The capital of Germany is Berlin.', 'Pottery is made from clay.', 'chomsky, fetch me two cookies.']
+                           'The capital of Germany is Berlin.', 'Pottery is made from clay.', 'chomsky, fetch me two cookies.',
+                           'The sky is blue.']
             
         if self.options.engine == 'relex':
-            from engines.relex import relex
+            from engines.codecs.relex import relex
             pb = ProgressBar(max_value=len(self.source), mode='fixed')
+            
             count = 0
             
             r = relex.relex()
@@ -59,7 +61,7 @@ class main:
                     sys.stdout.flush()
                     oldprog = str(pb)
                     
-                    
+                
                 sentence = r.process(sentences)
                 #debug(sentence)
                 parsed = r.parse_output(sentence)

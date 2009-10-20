@@ -1,18 +1,20 @@
 from collections import deque
 from utils.debug import *
 from rule_parser import parse_file
+from structures.atoms import Atoms
 
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
+from extensions.guile.guile import VM
+from engines.logic.groundings import Groundings
 
 import pprint
 import os
 import sys
 
-from structures.atoms import Atoms
 
-from extensions.guile.guile import VM
-from extensions.guile.guile import guile
+## Frame rules
+## Color -> Attribute
 
 
 class rule_engine:
@@ -26,6 +28,7 @@ class rule_engine:
         self.stack = []
 
         ## local variables
+        self.Grounds = Groundings()
         self.Groundings = {}
         self.Types = {}
 
@@ -38,8 +41,8 @@ class rule_engine:
             ["lemma", self.lemma],
             ["in-sentence?", self.inSentence],
             ["make-link", self.addLink],
-            ["reset-scope", self.reset],
-            ["ground", self.ground_variable],
+            ["reset-scope", self.Grounds.variableScope],
+            ["ground", self.Grounds.groundVariable],
             ["set-link-type", self.setType],
             ["make-phrase", self.makePhrase],
             ["output-phrase", self.Output],
@@ -63,25 +66,23 @@ class rule_engine:
         pass
         
     def Output(self, Ground1, Ground2, Ground3):
-        if not hasattr(self, "output"):
-            return
-        
-        self.Groundings = self.output
-        
+        #self.Groundings = self.output
         ground_1 = None
         ground_2 = None
         ground_3 = None
         
-        if self.isGround(Ground1) and self.isVariable(Ground1):
-            ground_1 = self.Groundings[Ground1]
+        if self.Grounds.isGround(Ground1) and self.isVariable(Ground1):
+            ground_1 = self.Grounds.getGrounding(Ground1)
         elif not self.isVariable(Ground1):
             ground_1 = Ground1
-        if self.isGround(Ground2) and self.isVariable(Ground2):
-            ground_2 = self.Groundings[Ground2]
+            
+        if self.Grounds.isGround(Ground2) and self.isVariable(Ground2):
+            ground_2 = self.Grounds.getGrounding(Ground2)
         elif not self.isVariable(Ground2):
             ground_2 = Ground2
-        if self.isGround(Ground3) and self.isVariable(Ground3):
-            ground_3 = self.Groundings[Ground3]
+            
+        if self.Grounds.isGround(Ground3) and self.isVariable(Ground3):
+            ground_3 = self.Grounds.getGrounding(Ground3)
         elif not self.isVariable(Ground3):
             ground_3 = Ground3
 
@@ -103,8 +104,8 @@ class rule_engine:
         for x in self.hypergraph.edge_by_type('feature'):            
             head, cur_tag, tail = x
             if cur_tag[0] == flag:
-                if self.isVariable(variable) and self.isGround(variable):
-                    value = self.Groundings[variable]
+                if self.isVariable(variable) and self.Grounds.isGround(variable):
+                    value = self.Grounds.getGrounding(variable)
                 else:
                     value = variable
                     
@@ -122,30 +123,11 @@ class rule_engine:
         return False
     
     def makePhrase(self, Ground1, Ground2):
-        if hasattr(self, "output"):
-            self.Groundings = self.output
-
-            if self.isGround(Ground1) and self.isGround(Ground2):
-                ground_1 = self.Groundings[Ground1]
-                ground_2 = self.Groundings[Ground2]
-                phrase = '_'.join([ground_1, ground_2])
-                self.ground_variable('$phrase', phrase)
-            
-    def reset(self, noType=False):
-        ## reset the groundings
-        del self.Groundings
-        self.Groundings = {}
-
-        if not noType:
-            del self.Types
-            self.Types = {}
-        
-    def isGround(self, variable):
-        ## is ground
-        if self.Groundings.has_key(variable):
-            return True
-        else:
-            return False
+        if self.Grounds.isGround(Ground1) and self.Grounds.isGround(Ground2):
+            ground_1 = self.Grounds.getGrounding(Ground1)
+            ground_2 = self.Grounds.getGrounding(Ground2)
+            phrase = '_'.join([ground_1, ground_2])
+            self.Grounds.groundVariable('$phrase', phrase)
 
     def inSentence(self, word):
         pass
@@ -173,21 +155,19 @@ class rule_engine:
     def setType(self, variable, Type):
         self.Types[variable] = Type
 
+    
+
     ## Grounding specifics
     def compareGround(self, ground, idx):
-        if self.Groundings[ground] != self.current[idx]:
+        if self.Grounds.getGrounding(ground) != self.current[idx]:
             return False
         else:
             return True
-        
-    def ground_variable(self, variable, ground):
-        ## ground a specific variable
-        self.Groundings[variable] = ground
 
     def addLink(self, ground_1, ground_2, type, data=None):
-        if self.isGround(ground_1) and self.isGround(ground_2):
-            ground_1 = self.Groundings[ground_1]
-            ground_2 = self.Groundings[ground_2]
+        if self.Grounds.isGround(ground_1) and self.Grounds.isGround(ground_2):
+            ground_1 = self.Grounds.getGrounding(ground_1)
+            ground_2 = self.Grounds.getGrounding(ground_2)
             
             self.hypergraph.add_edge(ground_1, ground_2, edge_data=[data], edge_type=type, with_merge=False)
 
@@ -256,52 +236,43 @@ class rule_engine:
         return output_stack
     
     def lemma(self, word, grounding):
-        if not hasattr(self, "output"):
-            return
-        
-        self.Groundings = self.output
-        #debug(word)
-        #debug(grounding)
-        #debug(self.Groundings)
-        
-        if self.isVariable(word) and self.isGround(word):
-            groundedWord = self.Groundings[word]
+        if self.isVariable(word) and self.Grounds.isGround(word):
+            groundedWord = self.Grounds.getGrounding(word)
             stemmed = self.stemmer.stem_word(groundedWord)
-            self.ground_variable(grounding, stemmed)
+            self.Grounds.groundVariable(grounding, stemmed)
+            
         elif not self.isVariable(word):
             stemmed = self.stemmer.stem_word(word)
-            self.ground_variable(grounding, stemmed)
+            self.Grounds.groundVariable(grounding, stemmed)
 
-        
-            
     def compareRule(self, tag, var_1, var_2):
         ## check to see if we are ground and it is a var
-        if self.isVariable(var_1) and self.isGround(var_1):
+        if self.isVariable(var_1) and self.Grounds.isGround(var_1):
             out = self.compareGround(var_1, 0)
             if not out:
                 return False
             
         ## otherwise we need to ground it
-        elif self.isVariable(var_1) and not self.isGround(var_1):
-            self.ground_variable(var_1, self.current[0])
+        elif self.isVariable(var_1) and not self.Grounds.isGround(var_1):
+            self.Grounds.groundVariable(var_1, self.current[0])
      
-        if self.isVariable(var_2) and self.isGround(var_2):
+        if self.isVariable(var_2) and self.Grounds.isGround(var_2):
             out = self.compareGround(var_2, 2)
             if not out:
                 return False
             
-        elif self.isVariable(var_2) and not self.isGround(var_2):
-            self.ground_variable(var_2, self.current[2])
+        elif self.isVariable(var_2) and not self.Grounds.isGround(var_2):
+            self.Grounds.groundVariable(var_2, self.current[2])
             
         if tag == '$prep':
             ## XXX: bad way of doing this
             return True
         
-        if self.isVariable(tag) and self.isGround(tag):
+        if self.isVariable(tag) and self.Grounds.isGround(tag):
             self.compareGround(tag, 1)
                 
-        elif self.isVariable(tag) and not self.isGround(tag):
-            self.ground_variable(tag, self.current[1])
+        elif self.isVariable(tag) and not self.Grounds.isGround(tag):
+            self.Grounds.groundVariable(tag, self.current[1])
         
         return True
     
@@ -313,7 +284,7 @@ class rule_engine:
                 for x in self.hypergraph.edge_by_type(tagType):
                     head, cur_tag, tail = x
                     edge_data = cur_tag[0]
-                    self.ground_variable(tag, edge_data)
+                    self.Grounds.groundVariable(tag, edge_data)
                     self.current = (head, edge_data, tail)
                     yield (head, edge_data, tail)
             else:
@@ -352,7 +323,7 @@ class rule_engine:
                     match = self.compareRule(tag, var_1, var_2)
                     if match:
                         ## self.match_stack.append(self.groundings)
-                        yield ([tag, var_1, var_2], self.Groundings)
+                        yield ([tag, var_1, var_2], self.Grounds.getGroundings())
 
                         ## run with recursion after yield
                         for x in self.match_rule_generator(rule_set):
@@ -369,14 +340,13 @@ class rule_engine:
                             ## dump on the stack
                                 self.stack.append((tag, var_1, var_2))
                                 ## self.match_stack.append(self.groundings)
-                                yield ([tag, var_1, var_2], self.Groundings)
+                                yield ([tag, var_1, var_2], self.Grounds.getGroundings())
 
                             else:
                                 ## reset the groundings
-                                self.reset(noType=True)
-                            #return 
+                                self.Grounds.variableScope()
                     else:
-                        self.reset(noType=True)
+                        self.Grounds.variableScope()
                         
 
 

@@ -63,6 +63,12 @@ class relex_analysis:
             
     def analyze(self, sentences):
         for sentence in sentences:
+            if not sentence[0]:
+                continue
+            
+            if not sentence[1]:
+                continue
+            
             ## per sentence instances
             hg = HG(sentence)
 
