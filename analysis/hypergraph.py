@@ -8,21 +8,21 @@ from utils.debug import *
 import nltk
 
 class HG:
-    def __init__(self, sentence):
+    def __init__(self):
         self.atoms = Atoms()
-        self.sentence = sentence
-        self.tokenized = nltk.word_tokenize(sentence[0])
-        self.prep_count = 0
         self.useful = []
-        
-        for idx, token in enumerate(self.tokenized[:-1]):
-            head = token
-            tail = self.tokenized[idx+1]
-            self.atoms.add_edge(head, tail, edge_data=[idx], head_data=[idx],
-                                tail_data=[idx+1], with_merge=True, edge_type='sentence')
 
-                
-        #self.atoms.add_node(self.tokenized[-1], node_data=len(self.tokenized)+1)
+    def sentenceToHG(self, uni_sentence):
+        tokenized = uni_sentence.Get('tokenized')
+        for idx, token in enumerate(tokenized[:-1]):
+            head = token
+            tail = tokenized[idx+1]
+            self.atoms.add_edge(head, tail, edge_data=[idx],
+                                head_data=[idx],
+                                tail_data=[idx+1],
+                                with_merge=True,
+                                edge_type='sentence')
+
 
     def characterize_tag(self, find_tag):
         characterizer = {
@@ -30,7 +30,6 @@ class HG:
         }
         
         for character, tags in characterizer.items():
-            ## combined = list(itertools.product([character], tag))
             for tag in tags:
                 if find_tag == tag:
                     return character
@@ -42,7 +41,9 @@ class HG:
         
         for tag in tag_set:
             head, data, tail = tag
-            edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
+            edge = self.atoms.add_edge(head, dependent,
+                                       edge_data=[tag],
+                                       edge_type=edge_type,
                                        with_merge=False)
                 
     def get_hypergraph(self):
@@ -54,7 +55,8 @@ class HG:
             if word == search_word:
                 return (idx, word)
             
-    def features_in(self, features):
+    def features_in(self, uni_sentence):
+        features = uni_sentence.Get('features')
         types = ['pos']
         
         for feature in features:
@@ -72,12 +74,13 @@ class HG:
             else:
                 edge_type = edgeType
                 
-            edge = self.atoms.add_edge(head, dependent, edge_data=[tag], edge_type=edge_type,
+            edge = self.atoms.add_edge(head,
+                                       dependent,
+                                       edge_data=[tag],
+                                       edge_type=edge_type,
                                        with_merge=False)
         
     def frames_in(self, frames):
-
-        
         for frame in frames:
             tag = '_'.join(frame[1:2])
             head = frame[3]
