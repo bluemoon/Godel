@@ -36,8 +36,8 @@ class universal_sentence(universal_container):
     attributes = None
     
     def __init__(self, word_set):
-        word_set = word_set
-        attributes = {}
+        self.word_set = word_set
+        self.attributes = {}
 
 
 

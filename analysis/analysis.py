@@ -63,9 +63,9 @@ class relex_analysis:
 
         return word_set
             
-    def analyze(self, sentences):
-        print sentences
-        for sentence in sentences:
+    def analyze(self, sentence):
+        current_sentence = sentence.Get('analysis')
+        for sentence in current_sentence:
             if not sentence:
                 continue
             if not sentence[0]:
