@@ -90,6 +90,7 @@ class relex_analyze:
                 right_p = deps.index(')')
             
             feature = deps[:left_p]
+            ## FIXME: Bug here
             parameters = deps[left_p+1:right_p]
             
             if ',' in parameters:

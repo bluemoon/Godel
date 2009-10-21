@@ -66,8 +66,6 @@ class HG:
             
             tag_type = self.characterize_tag(tag)
             edgeType = (tag_type != None and tag_type or 'feature')
-            ## debug(edge_type)
-
 
             if tag in types:
                 edge_type = tag

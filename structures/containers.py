@@ -19,7 +19,7 @@ class universal_container:
         self.attributes[attribute] = value
 
     def __repr__(self):
-        return self.attributes
+        return repr(self.attributes)
 
 class universal_word(universal_container):
     word = None

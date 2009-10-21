@@ -7,6 +7,7 @@ from analysis.analysis import relex_analysis
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 
+from utils.debug import *
 
 import nltk
 
@@ -56,15 +57,19 @@ class sentence:
         
         tokenized = self.helper.tokenize(Sentence)
         tagged = self.helper.tag(tokenized)
-        
+
+        ## create a container for each word
         for word in tokenized:
             currentWord = universal_word(word)
             self.helper.universalWord(currentWord)
             word_set.append(currentWord)
-            
+
+        
         universalSentence = universal_sentence(word_set)
         self.sentence_frame.append(universalSentence)
 
+        ## put the tokens and the sentence as a whole in the
+        ## container.
         universalSentence.Set('whole-sentence', Sentence)
         universalSentence.Set('tokenized', tokenized)
         
@@ -73,17 +78,26 @@ class sentence:
         
         ## tie the original sentence with the parsed one
         to_analyze = (Sentence, parsed)
+
         universalSentence.Set('analysis', to_analyze)
 
-        
-        #self.alchemy_api.run_all(universalSentence)
-        #self.analysis.analyze(universalSentence)
+
+        if len(Sentence) > 5:
+            self.alchemy_api.run_all(universalSentence)
         
         features = self.relex.parse_features(to_analyze)
-        universalSentence.Set('features', features)
+        if features:
+            universalSentence.Set('features', features)
+            
         ## hypergraph work
         self.hg.sentenceToHG(universalSentence)
-        self.hg.features_in(universalSentence)        
         
         
+        if features:
+            self.hg.features_in(universalSentence) 
+
+        hg = self.hg.get_hypergraph()
+        universalSentence.Set('hypergraph', hg)
+        
+        #debug(universalSentence)
         
