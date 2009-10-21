@@ -74,6 +74,20 @@ class universal_sentence(universal_container):
         
         return "universal_sentence:%s" % (output_string)
 
+
+
+class universalConcept:
+    concept    = None
+    weight     = None
+    attributes = None
+
+    def __init__(self, concept):
+        self.concept = concept
+        self.weight  = 0
+        self.attributes = {}
+
+
+
 class relationships:
     dependencies = None
     frames       = None

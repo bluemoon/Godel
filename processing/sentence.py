@@ -4,10 +4,12 @@ from structures.containers import universal_word
 
 from engines.codecs.relex import relex
 from processing.tagger import tagger
-from processing.alchemy_api import alchemy_api
+
+
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 from analysis.rule_engine import rule_engine
+
 from utils.debug import *
 
 import nltk
@@ -43,16 +45,22 @@ class sentence:
             self.codec = relex.relex()
             
         self.relex = relex_analyze()        
-        self.alchemy_api = alchemy_api()
         self.rule_engine = rule_engine()
         self.helper = sentence_helper()
+
         self.hg = HG()
         
-        
-        if self.options.divsi:
+        if self.options.concepts:
             from processing.conceptnet.concepts import Concepts
             self.concepts = Concepts(self.options)
             
+        if self.options.alchemy:
+            from processing.alchemy_api import alchemy_api
+            self.alchemy_api = alchemy_api()
+
+        if self.options.calais:
+            from processing.calais_api import calaisApi
+            self.calais_api = calaisApi()
         
     def process(self, Sentence):
         if not Sentence or len(Sentence) < 2:
@@ -106,5 +114,9 @@ class sentence:
             concepts = self.concepts.run(universalSentence)
             debug(concepts)
             
+        if self.options.calais:
+            calais = self.calais_api.calais_run(universalSentence)
+        
+        debug(calais)
         debug(universalSentence)
         

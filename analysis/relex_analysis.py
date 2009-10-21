@@ -98,7 +98,10 @@ class relex_analyze:
             
             feature = deps[:left_p]
             ## FIXME: Bug here
-            parameters = deps[left_p+1:right_p]
+            try:
+                parameters = deps[left_p+1:right_p]
+            except:
+                continue
             
             if ',' in parameters:
                 comma = parameters.index(',')

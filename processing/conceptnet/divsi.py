@@ -1,15 +1,17 @@
 import sys
+import itertools
+import operator
 sys.path.append('data/conceptnet/')
+
 from csc.util.persist import get_picklecached_thing
 from csc.conceptnet4.models import Concept
 from csc.conceptnet4.analogyspace import conceptnet_2d_from_db
 from csc.nl import get_nl
 import csc
 
+from data.prepositions import prepositions
 from utils.debug import *
 
-import itertools
-import operator
 
 class DivsiHelper:
     def __init__(self):
@@ -26,7 +28,7 @@ class DivsiHelper:
     def interestingTags(self, univ_sentence):
         ## exhaustive combinations of the interesting tags
         totalTags = []
-        iTags = ['_subj', '_obj', '_predadj']
+        iTags = ['_subj', '_obj', '_predadj', '_psubj', '_pobj'] + prepositions
         for eachTag in self.byFeatureTag(univ_sentence):
             if eachTag['tag'] in iTags:
                 concept = self.Conceptable(eachTag)
@@ -75,14 +77,17 @@ class Divsi:
                 left  = self.analogySpace.weighted_u_vec(L)
                 right = self.analogySpace.weighted_u_vec(R)
                 similar = left.hat() * right.hat()
-                common[L] = self.analogySpace.u_dotproducts_with(L).top_items(10)
-                common[R] = self.analogySpace.u_dotproducts_with(R).top_items(10)
-
-                similarity[similar] = [interesting[0], interesting[1]]
-            except:
+                
+                common[L] = self.analogySpace.u_dotproducts_with(left).top_items(10)
+                common[R] = self.analogySpace.u_dotproducts_with(right).top_items(10)
+                
+                similarity[similar] = [L, R]
+            except Exception, E:
                 pass
-
-        return self.helper.sortDictionary(simularity)
+                
+        sorted_similarity = self.helper.sortDictionary(similarity)
+        return (sorted_similarity, common)
+    
 
             
 
