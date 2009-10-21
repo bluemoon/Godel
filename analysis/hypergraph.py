@@ -1,4 +1,4 @@
-#import networkx
+
 from structures.atoms import Atoms
 from data.prepositions import prepositions
 from rule_engine import rule_engine
@@ -13,7 +13,7 @@ class HG:
         self.useful = []
 
     def sentenceToHG(self, uni_sentence):
-        tokenized = uni_sentence.Get('tokenized')
+        tokenized = uni_sentence.tokenized
         for idx, token in enumerate(tokenized[:-1]):
             head = token
             tail = tokenized[idx+1]

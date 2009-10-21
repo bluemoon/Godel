@@ -3,7 +3,7 @@ from settings import settings
 from processing.sentence import sentence
 from utils.debug import *
 from utils.progress_bar import ProgressBar
-from utils.irc import irc
+
 
 import sys
 
@@ -23,6 +23,7 @@ class main:
         self.parser.add_option("--analysis", dest="analysis", default=default_analysis)
         self.parser.add_option("--without-graph", action="store_false", dest="graph", default=True)
         self.parser.add_option("--with-graph-frame", action="store_true", dest="graph_frame", default=False)
+        self.parser.add_option("--with-alchemy", action="store_true", dest="alchemy", default=False)
         self.parser.add_option("--with-graph-tags", action="store_false", dest="graph_tags", default=True)
         self.parser.add_option("--irc", action="store_true", dest="irc", default=False)
         (self.options, self.args) = self.parser.parse_args()
@@ -32,6 +33,7 @@ class main:
         self.to_analyze = []
         
         if self.options.irc:
+            from utils.irc import irc
             irc()
             return
         

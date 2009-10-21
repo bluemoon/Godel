@@ -87,13 +87,13 @@ class relex_analyze:
             if '(' in deps:
                 left_p = deps.index('(')
             else:
-                ## this state should not be allowed
+                ## FIXME: this state should not be allowed
                 pass
             
             if ')' in deps:
                 right_p = deps.index(')')
             else:
-                ## this state shouldnt be allowed either
+                ## FIXME: this state shouldnt be allowed either
                 pass
             
             feature = deps[:left_p]

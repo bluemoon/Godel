@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 from structures.containers import universal_sentence
 from structures.containers import universal_word
 from engines.codecs.relex import relex
 from processing.tagger import tagger
 from processing.alchemy_api import alchemy_api
-from analysis.analysis import relex_analysis
+#from analysis.analysis import relex_analysis
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 
@@ -42,7 +43,6 @@ class sentence:
             self.codec = relex.relex()
             
         self.relex = relex_analyze()        
-        self.analysis = relex_analysis(self.options)
         self.alchemy_api = alchemy_api()
         
         self.helper = sentence_helper()
@@ -70,24 +70,23 @@ class sentence:
 
         ## put the tokens and the sentence as a whole in the
         ## container.
-        universalSentence.Set('whole-sentence', Sentence)
-        universalSentence.Set('tokenized', tokenized)
+        universalSentence.whole_sentence = Sentence
+        universalSentence.tokenized = tokenized
         
         processed = self.codec.process(Sentence)
         parsed = self.codec.parse_output(processed)
         
         ## tie the original sentence with the parsed one
         to_analyze = (Sentence, parsed)
+        universalSentence.analysis = to_analyze
 
-        universalSentence.Set('analysis', to_analyze)
 
-
-        if len(Sentence) > 5:
+        if len(Sentence) > 5 and self.options.alchemy:
             self.alchemy_api.run_all(universalSentence)
         
         features = self.relex.parse_features(to_analyze)
         if features:
-            universalSentence.Set('features', features)
+            universalSentence.features = features
             
         ## hypergraph work
         self.hg.sentenceToHG(universalSentence)
@@ -97,7 +96,8 @@ class sentence:
             self.hg.features_in(universalSentence) 
 
         hg = self.hg.get_hypergraph()
-        universalSentence.Set('hypergraph', hg)
-        
-        #debug(universalSentence)
+        universalSentence.hypergraph = hg
+
+
+        debug(universalSentence)
         

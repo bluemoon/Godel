@@ -5,7 +5,7 @@ from twisted.internet import reactor, protocol
 from twisted.internet import defer
 
 from engines.codecs.relex import relex
-from analysis.analysis import relex_analysis
+#from analysis.analysis import relex_analysis
 
 class Godel(Bot):
     def on_pubMessage(self, user, channel, message):
@@ -14,8 +14,8 @@ class Godel(Bot):
             sentence = r.process(message)
             parsed = r.parse_output(sentence)
             ## then analyze
-            r = relex_analysis()
-            r.analyze([(message, parsed)])
+            #r = relex_analysis()
+            #r.analyze([(message, parsed)])
         
 class botFactory(protocol.ClientFactory):
     ## a factory for our bot

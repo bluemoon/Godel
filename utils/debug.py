@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+from pprint import pprint
 import inspect
 import time
-#import pylab
 
 TERM_GREEN   = "\033[1;32m"
 TERM_ORANGE  = '\033[93m'
@@ -45,12 +45,12 @@ def debug(obj, prefix=None):
         n_prefix = DEBUG_PREFIX + ': '
         print n_prefix % (d_time, time_delta,  from_line),
         #pprint.pprint(obj)
-        print obj
+        pprint(obj)
     else:
         n_prefix = DEBUG_PREFIX + ' %s:'
         print n_prefix% (d_time, time_delta, from_line, prefix),
         #pprint.pprint(obj)
-        print obj
+        pprint(obj)
         
     DEBUG_CALL_LIST.append({'method':caller_method, 'time':CALL_TIME})
 
