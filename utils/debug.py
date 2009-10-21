@@ -13,6 +13,7 @@ START_TIME = time.time()
 DEBUG_CALL_LIST = []
 DEBUG_PREFIX = u'[t:%.1f tΔ:%.3f line:%d]'
 
+TIME_DIFF = False
 def debug(obj, prefix=None):    
     CALL_TIME = time.time()
     caller_module = inspect.stack()[1][1]
@@ -21,8 +22,8 @@ def debug(obj, prefix=None):
     time_delta    = 0.0
     function      = True
 
-
-    d_time = CALL_TIME - START_TIME
+    if TIME_DIFF:
+        d_time = CALL_TIME - START_TIME
 
     if caller_method == '<module>':
         caller_method = caller_module
@@ -42,13 +43,27 @@ def debug(obj, prefix=None):
 
         
     if not prefix:
+        if not TIME_DIFF:
+            DEBUG_PREFIX = u'[line:%d]'
+            
         n_prefix = DEBUG_PREFIX + ': '
-        print n_prefix % (d_time, time_delta,  from_line),
-        pprint(obj)
+        if TIME_DIFF:
+            print n_prefix % (d_time, time_delta,  from_line),
+        else:
+            print n_prefix % (from_line),
+            
+        print repr(obj)
     else:
+        if not TIME_DIFF:
+            DEBUG_PREFIX = u'[line:%d]'
+
         n_prefix = DEBUG_PREFIX + ' %s:'
-        print n_prefix % (d_time, time_delta, from_line, prefix),
-        pprint(obj)
+        if not TIME_DIFF:
+            print n_prefix % (from_line, prefix),
+        else:
+            print n_prefix % (d_time, time_delta, from_line, prefix),
+            
+        print repr(obj)
         
     DEBUG_CALL_LIST.append({'method':caller_method, 'time':CALL_TIME})
 

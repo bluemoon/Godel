@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+from utils.term_colors import *
 
 class universal_container:
-        
     def __getattr__(self, name):
         if self._hasAttr(name):
             return self.attributes[name]
@@ -65,14 +65,14 @@ class universal_sentence(universal_container):
                     temp_string = '%s is a %s' % (temp[0], temp[1])
                     named.append(temp_string)
                 
-                output_string += ' (named entities: %s) ' % ', '.join(named)
+                output_string += "\n\t\t(named entities: %s)" % ', '.join(named)
                 
         if self.attributes.has_key('whole_sentence'):
             sentence = self.attributes["whole_sentence"]
             if len(sentence) > 0:
-                output_string += ' (sentence: %s) ' % sentence
+                output_string += "\n\t\t(sentence: %s)" % (sentence)
         
-        return '<universal_sentence%s>' % (output_string)
+        return "universal_sentence:%s" % (output_string)
 
 class relationships:
     dependencies = None
