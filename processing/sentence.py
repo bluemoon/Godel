@@ -4,8 +4,7 @@ from structures.containers import universal_word
 
 from engines.codecs.relex import relex
 from processing.tagger import tagger
-
-
+from processing.concepts import Concepts
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 from analysis.rule_engine import rule_engine
@@ -49,18 +48,9 @@ class sentence:
         self.helper = sentence_helper()
 
         self.hg = HG()
-        
-        if self.options.concepts:
-            from processing.conceptnet.concepts import Concepts
-            self.concepts = Concepts(self.options)
-            
-        if self.options.alchemy:
-            from processing.alchemy_api import alchemy_api
-            self.alchemy_api = alchemy_api()
 
-        if self.options.calais:
-            from processing.calais_api import calaisApi
-            self.calais_api = calaisApi()
+        self.concepts = Concepts(self.options)
+        
         
     def process(self, Sentence):
         if not Sentence or len(Sentence) < 2:
@@ -91,9 +81,7 @@ class sentence:
         to_analyze = (Sentence, parsed)
         universalSentence.analysis = to_analyze
 
-        if len(Sentence) > 5 and self.options.alchemy:
-            self.alchemy_api.run_all(universalSentence)
-        
+                
         features = self.relex.parse_features(to_analyze)
         if features:
             universalSentence.features = features
@@ -110,13 +98,7 @@ class sentence:
             ## then init the rule engine
             self.rule_engine.initialize(universalSentence)
         
-        if self.options.concepts and features:
-            concepts = self.concepts.run(universalSentence)
-            debug(concepts)
-            
-        if self.options.calais:
-            calais = self.calais_api.calais_run(universalSentence)
+        self.concepts.deriveConcepts(universalSentence)
         
-        debug(calais)
         debug(universalSentence)
         

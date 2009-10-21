@@ -52,9 +52,6 @@ def run_anyway(func):
 def persistent_memoize(func, limit=None):
     inspect_stack = inspect.stack()
     caller_module = inspect_stack[1][1]
-    #caller_method = inspect_stack[1][3]
-    #from_line     = inspect_stack[1][2]
-
     dict_file = os.path.join(cachedir, "global-cache.pickle")
     
     if os.path.exists(dict_file):

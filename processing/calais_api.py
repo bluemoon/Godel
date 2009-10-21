@@ -8,11 +8,10 @@ class calaisApi:
         self.calais = Calais(KEY, submitter="GodelTest")
 
     @persistent_memoize
-    def calais_run(self, univ_word):
+    def calais_run(self, sentence):
         entities = []
-        
         try:
-            result = self.calais.analyze(univ_word.whole_sentence)
+            result = self.calais.analyze(sentence)
         except ValueError:
             return
             
@@ -23,4 +22,5 @@ class calaisApi:
 
         if len(entities) > 0:
             return entities
-        
+        else:
+            return False
