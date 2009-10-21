@@ -6,6 +6,7 @@ from processing.tagger import tagger
 from processing.alchemy_api import alchemy_api
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
+from analysis.rule_engine import rule_engine
 
 from utils.debug import *
 
@@ -47,6 +48,9 @@ class sentence:
         self.helper = sentence_helper()
         self.hg = HG()
         
+        if self.options.divsi:
+            from processing.conceptnet.divsi import Divsi
+            self.divsi = Divsi()
         
     def process(self, Sentence):
         if not Sentence or len(Sentence) < 2:
@@ -94,6 +98,8 @@ class sentence:
         hg = self.hg.get_hypergraph()
         universalSentence.hypergraph = hg
 
+        if self.options.divsi and features:
+            self.divsi.concept_similarity(universalSentence)
 
         debug(universalSentence)
         

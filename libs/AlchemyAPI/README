@@ -1,0 +1,57 @@
+==================================
+AlchemyAPI Python SDK: version 0.2
+==================================
+
+This is a Python implementation of the AlchemyAPI SDK.
+
+
+INSTALLATION
+
+To install this module, copy the AlchemyAPI.py file into your desired
+Python import directory.
+
+
+RUNNING EXAMPLES
+
+Several code examples are included to illustrate using the AlchemyAPI
+for named entity extraction, text classification, language identification,
+and other tasks.
+
+All code samples are within the "example" directory.
+
+To run these code samples you must first edit the (example/api_key.txt) file, 
+adding your assigned Orchestr8 API key.
+
+Code Samples:
+
+   1. Entity Extraction: python entities.py
+
+   2. Keyword Extraction: python keywords.py
+
+   3. Text Categorization: python categories.py
+
+   4. Language Identification: python language.py
+
+   5. HTML Text Extraction: python text_extract.py
+
+   6. Microformats Extraction: python microformats.py
+
+   7. RSS / ATOM Feed Links Extraction: python feed_links.py
+
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+   PyXML (available at: http://sourceforge.net/projects/pyxml/ )
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2009 Orchestr8, LLC.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Python itself, either Python version 2.5 or,
+at your option, any later version of Python 2.5 you may have available.
+
+

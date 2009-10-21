@@ -2,7 +2,10 @@
 *~
 .#*
 *#
-engines/relex/bin/*
+*.o
+
+engines/codecs/relex/bin/*
+processing/mln/
 data/README
 data/concept_vars.txt
 data/conceptnet/*
@@ -20,3 +23,8 @@ data/tensor.gz
 data/wordnet/*
 data/data-*
 data/graphs/
+data/divsi/
+data/mln/
+data/api_key.txt
+data/prep-rules.scm
+libs/pymlns/
