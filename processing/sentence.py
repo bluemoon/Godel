@@ -44,9 +44,10 @@ class sentence:
             
         self.relex = relex_analyze()        
         self.alchemy_api = alchemy_api()
-        
+        self.rule_engine = rule_engine()
         self.helper = sentence_helper()
         self.hg = HG()
+        
         
         if self.options.divsi:
             from processing.conceptnet.divsi import Divsi
@@ -100,6 +101,6 @@ class sentence:
 
         if self.options.divsi and features:
             self.divsi.concept_similarity(universalSentence)
-
+            
         debug(universalSentence)
         

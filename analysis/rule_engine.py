@@ -17,9 +17,7 @@ import sys
 ## Color -> Attribute
 
 class rule_engine:
-    def __init__(self, tag_stack, hypergraph):
-        self.tag_stack   = tag_stack
-        self.hypergraph  = hypergraph
+    def __init__(self):
         ## nltk stemmer
         self.stemmer  = PorterStemmer()
 
@@ -30,7 +28,11 @@ class rule_engine:
         self.Grounds = Groundings()
         self.Groundings = {}
         self.Types = {}
-
+        
+    def initialize(self, tag_stack, hypergraph):
+        self.tag_stack  = tag_stack
+        self.hypergraph = hypergraph
+        
     def interpreter(self, FileList):
         vm = VM('r5rs')
         
