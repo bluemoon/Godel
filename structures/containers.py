@@ -2,21 +2,19 @@
 from collections import namedtuple
 
 class universal_container:
-    attributes = {}
-    
-    def __getattr__(self, name):
-        if name in self.__dict__:
-            return self.__dict__[name]
         
+    def __getattr__(self, name):
         if self._hasAttr(name):
             return self.attributes[name]
+        elif self.__dict__.has_key(name):
+            return self.__dict__[name]
     
     def __setattr__(self, name, value):
-        if name in self.__dict__:
+        if self.attributes == None:
             self.__dict__[name] = value
         else:
             self.attributes[name] = value
-
+        
     def _hasAttr(self, attribute):
         if self.attributes.has_key(attribute):
             return True
@@ -31,24 +29,50 @@ class universal_container:
         
     def Set(self, attribute, value):
         self.attributes[attribute] = value
+        
 
 
 
 class universal_word(universal_container):
     word = None
+    attributes = None
+
     def __init__(self, word):
         self.word = word
+        self.attributes = {}
+        
         
     def __repr__(self):
-        return '<%s %s>' % (self.word, self.attributes)
+        return '<UW word: %s attr: %s>' % (self.word, self.attributes)
         
 class universal_sentence(universal_container):
     word_set   = None
+    attributes = None
+
     def __init__(self, word_set):
-        self.word_set = word_set
+        self.word_set   = word_set
+        self.attributes = {}
         
     def __repr__(self):
-        return '<%s %s>' % (self.word_set, self.attributes)
+        output_string = ''
+        
+        if self.attributes.has_key('named_entity'):
+            named_entity = self.attributes["named_entity"]
+            if len(named_entity) > 0:
+                named = []
+                for named_item in named_entity:
+                    temp = named_item.items()[0]
+                    temp_string = '%s is a %s' % (temp[0], temp[1])
+                    named.append(temp_string)
+                
+                output_string += ' (named entities: %s) ' % ', '.join(named)
+                
+        if self.attributes.has_key('whole_sentence'):
+            sentence = self.attributes["whole_sentence"]
+            if len(sentence) > 0:
+                output_string += ' (sentence: %s) ' % sentence
+        
+        return '<universal_sentence%s>' % (output_string)
 
 class relationships:
     dependencies = None

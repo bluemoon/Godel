@@ -31,7 +31,7 @@ class sentence_helper:
     def tagToAttribute(self, uni_word):
         currentTag = self.tags.pop(0)
         partOfSpeech = currentTag[1]
-        uni_word.Set('nltk-pos', partOfSpeech)
+        uni_word.nltk_pos = partOfSpeech
     
     
 class sentence:
@@ -63,11 +63,8 @@ class sentence:
             currentWord = universal_word(word)
             self.helper.universalWord(currentWord)
             word_set.append(currentWord)
-
-        debug(word_set)
         
         universalSentence = universal_sentence(word_set)
-        self.sentence_frame.append(universalSentence)
 
         ## put the tokens and the sentence as a whole in the
         ## container.
@@ -80,7 +77,6 @@ class sentence:
         ## tie the original sentence with the parsed one
         to_analyze = (Sentence, parsed)
         universalSentence.analysis = to_analyze
-
 
         if len(Sentence) > 5 and self.options.alchemy:
             self.alchemy_api.run_all(universalSentence)

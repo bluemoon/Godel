@@ -56,7 +56,7 @@ class HG:
                 return (idx, word)
             
     def features_in(self, uni_sentence):
-        features = uni_sentence.Get('features')
+        features = uni_sentence.features
         types = ['pos']
         
         for feature in features:

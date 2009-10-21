@@ -41,18 +41,6 @@ def folder_size(folder, starts_with=None):
     #print "Folder = %0.1f MB" % (folder_size/(1024*1024.0))
     return (folder_size/(1024.0*1024.0))
 
-def persistent_transaction(file, data=None, action=None):
-    open_mode = (action and 'load' or 'w' and 'r')
-    if os.path.exists(file):
-        try:
-            f_handle = open(file, open_mode)
-            if action == 'load':
-                data = 
-        except:
-            if action == 'dump':
-                f_handle = open(file, open_mode)
-                
-            pass
         
 def run_anyway(func):
     def wrapper(*args, **kwargs):
@@ -60,7 +48,7 @@ def run_anyway(func):
             return func(*args)
         except:
             return func(*args)
-    
+
 def persistent_memoize(func, limit=None):
     inspect_stack = inspect.stack()
     caller_module = inspect_stack[1][1]
