@@ -27,6 +27,7 @@ class main:
         self.parser.add_option("--with-alchemy", action="store_true", dest="alchemy", default=False)
         self.parser.add_option("--with-graph-tags", action="store_false", dest="graph_tags", default=True)
         self.parser.add_option("--with-divsi", action="store_true", dest="divsi", default=False)
+        self.parser.add_option("--with-concepts", action="store_true", dest="concepts", default=False)
 
 
 

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from structures.containers import universal_sentence
 from structures.containers import universal_word
+
 from engines.codecs.relex import relex
 from processing.tagger import tagger
 from processing.alchemy_api import alchemy_api
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 from analysis.rule_engine import rule_engine
-
 from utils.debug import *
 
 import nltk
@@ -50,8 +50,9 @@ class sentence:
         
         
         if self.options.divsi:
-            from processing.conceptnet.divsi import Divsi
-            self.divsi = Divsi()
+            from processing.conceptnet.concepts import Concepts
+            self.concepts = Concepts(self.options)
+            
         
     def process(self, Sentence):
         if not Sentence or len(Sentence) < 2:
@@ -101,10 +102,9 @@ class sentence:
             ## then init the rule engine
             self.rule_engine.initialize(universalSentence)
         
-        
-        if self.options.divsi and features:
-            simularity = self.divsi.concept_similarity(universalSentence)
-            debug(simularity)
+        if self.options.concepts and features:
+            concepts = self.concepts.run(universalSentence)
+            debug(concepts)
             
         debug(universalSentence)
         
