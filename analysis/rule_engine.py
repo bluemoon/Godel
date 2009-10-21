@@ -29,9 +29,9 @@ class rule_engine:
         self.Groundings = {}
         self.Types = {}
         
-    def initialize(self, tag_stack, hypergraph):
-        self.tag_stack  = tag_stack
-        self.hypergraph = hypergraph
+    def initialize(self, univ_sentence):
+        self.tag_stack  = univ_sentence.features
+        self.hypergraph = univ_sentence.hypergraph
         
     def interpreter(self, FileList):
         vm = VM('r5rs')

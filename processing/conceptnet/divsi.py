@@ -6,35 +6,40 @@ from csc.conceptnet4.analogyspace import conceptnet_2d_from_db
 from csc.nl import get_nl
 import csc
 
-from utils.memoize import persistent_memoize
 from utils.debug import *
 
-def svd_loaded(function):
-    def wrap(*args):
-        instance = args[0]
-        if instance.svd == None:
-            instance.svd = instance.load_svd()
+import itertools
 
-        return function(*args)
-    return wrap
 
 class DivsiHelper:
     def __init__(self):
         self.EuroNL = get_nl('en')
-        
+
+    def sortDictionary(self, Dictionary):
+        keys = Dictionary.keys()
+        keys.sort()
+        return map(Dictionary.get, keys)
+
     def byFeatureTag(self, universal_sentence):
         for x in universal_sentence.features:
             tag, left, right = x
             yield {'tag':tag, 'l':left, 'r':right}
             
     def interestingTags(self, univ_sentence):
+        ## exhaustive combinations of the interesting tags
+        totalTags = []
         iTags = ['_subj', '_obj', '_predadj']
         for eachTag in self.byFeatureTag(univ_sentence):
             if eachTag['tag'] in iTags:
                 concept = self.Conceptable(eachTag)
                 if concept:
-                    yield concept
-                
+                    totalTags.append(concept['l'])
+                    totalTags.append(concept['r'])
+                    
+        for combinations in itertools.combinations(totalTags, 2):
+            if combinations[0] != combinations[1]:
+                yield combinations
+        
     def Conceptable(self, tag):
         if self.EuroNL.is_stopword(tag['l']):
             return False
@@ -64,16 +69,17 @@ class Divsi:
 
     
     def concept_similarity(self, universal_word):
+        simularity = {}
         for interesting in self.helper.interestingTags(universal_word):
             try:
-                left = self.analogySpace.weighted_u[interesting['l'],:]
-                right = self.analogySpace.weighted_u[interesting['r'],:]
+                left = self.analogySpace.weighted_u[interesting[0],:]
+                right = self.analogySpace.weighted_u[interesting[1],:]
                 similar = left.hat() * right.hat()
-                debug(similar, prefix='L:%s R:%s' % (interesting['l'], interesting['r']))
+                simularity[similar] = [interesting[0], interesting[1]]
             except:
                 pass
-            
-            
+
+        return self.helper.sortDictionary(simularity)
 
             
 

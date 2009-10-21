@@ -95,12 +95,16 @@ class sentence:
         
         if features:
             self.hg.features_in(universalSentence) 
-
-        hg = self.hg.get_hypergraph()
-        universalSentence.hypergraph = hg
-
+        
+            hg = self.hg.get_hypergraph()
+            universalSentence.hypergraph = hg
+            ## then init the rule engine
+            self.rule_engine.initialize(universalSentence)
+        
+        
         if self.options.divsi and features:
-            self.divsi.concept_similarity(universalSentence)
+            simularity = self.divsi.concept_similarity(universalSentence)
+            debug(simularity)
             
         debug(universalSentence)
         
