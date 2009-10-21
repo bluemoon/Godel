@@ -5,11 +5,17 @@ class universal_container:
     attributes = {}
     
     def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        
         if self._hasAttr(name):
             return self.attributes[name]
     
     def __setattr__(self, name, value):
-        self.attributes[name] = value
+        if name in self.__dict__:
+            self.__dict__[name] = value
+        else:
+            self.attributes[name] = value
 
     def _hasAttr(self, attribute):
         if self.attributes.has_key(attribute):
@@ -38,9 +44,9 @@ class universal_word(universal_container):
         
 class universal_sentence(universal_container):
     word_set   = None
-    
     def __init__(self, word_set):
         self.word_set = word_set
+        
     def __repr__(self):
         return '<%s %s>' % (self.word_set, self.attributes)
 

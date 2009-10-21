@@ -64,6 +64,7 @@ class sentence:
             self.helper.universalWord(currentWord)
             word_set.append(currentWord)
 
+        debug(word_set)
         
         universalSentence = universal_sentence(word_set)
         self.sentence_frame.append(universalSentence)
