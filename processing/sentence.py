@@ -4,7 +4,6 @@ from structures.containers import universal_word
 from engines.codecs.relex import relex
 from processing.tagger import tagger
 from processing.alchemy_api import alchemy_api
-#from analysis.analysis import relex_analysis
 from analysis.hypergraph import HG
 from analysis.relex_analysis import relex_analyze
 
