@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
 from collections import deque
+import numpy
+from scipy import linalg
+from scipy import dot
+import scipy
 
 ## Original: http://www.ece.arizona.edu/~denny/python_nest/graph_lib_1.0.1.html
 ## Modifications: Alex Toney
@@ -54,10 +59,10 @@ class GraphException(Exception):
     def __str__(self):
         return repr(self.value)
 
-class Atoms:
-    ## Atoms are a basic hypergraph
+class Hypergraph:
     def __init__(self):
         self.next_edge_id = 0
+        self.next_node_id = 0
         self.nodes = {}
         self.edges = {}
         self.hidden_edges = {}
@@ -97,7 +102,8 @@ class Atoms:
         ## Creates a new node with id node_id.  Arbitrary data can be attached
         ## to the node via the node_data parameter.
         if (not self.nodes.has_key(node_id)) and (not self.hidden_nodes.has_key(node_id)):
-            self.nodes[node_id]=([],[],node_data)
+            self.nodes[node_id]=([],[],node_data, self.next_node_id)
+            self.next_node_id += 1
         else:
             if not ignore_dupes:
                 raise GraphException('Duplicate Node: %s', node_id)
@@ -382,7 +388,7 @@ class Atoms:
 
     #--Similar to above.
     def tail(self, edge):
-        mapped_data=map(None, self.edges[edge])
+        mapped_data = map(None, self.edges[edge])
         return mapped_data[1]
 
     #--Returns a copy of the list of edges of the node's out arcs.
@@ -568,6 +574,125 @@ class Atoms:
 
         return bfs_list
 
+
+    def adjacencyList(self):
+        wholeList = []
+        allEdges = self.edge_list()        
+        for edge in allEdges:
+            head = self.head(edge)
+            tail = self.tail(edge)
+            
+            L = self.nodes[head][3]
+            R = self.nodes[tail][3]
+            
+            wholeList.append((L, R))
+            
+        return wholeList
+    
+    def adjacencyMatrix(self):
+        wholeList = []
+        nodeCount = self.number_of_nodes()
+        adjMatrix = numpy.mat(numpy.zeros((nodeCount, nodeCount)))
+        allEdges = self.edge_list()
+        
+        for edge in allEdges:
+            head = self.head(edge)
+            tail = self.tail(edge)
+            
+            L = self.nodes[head][3]
+            R = self.nodes[tail][3]
+            
+            adjMatrix[L, R] += 1
+            
+        return adjMatrix
+    
+    def incidenceOfNode(self, Node):
+        nodeCount = 1
+        vertex = 0
+        edgeCount = self.out_degree(Node)
+        incidMatrix = numpy.zeros((nodeCount, edgeCount))
+
+        for arc in self.out_arcs(Node):
+            incidMatrix[vertex, arc] = 1
+                
+        return incidMatrix
+    
+    def incidenceMatrix(self):
+        wholeList = []
+        ## |V| = nodeCount
+        nodeCount = self.number_of_nodes()
+        ## |E| = edgeCount
+        edgeCount = self.number_of_edges()
+        incidMatrix = numpy.zeros((nodeCount, edgeCount))
+        allNodes = self.node_list()
+        for node in allNodes:
+            vertex = self.node(node)[3]
+            for arc in self.out_arcs(node):
+                incidMatrix[vertex, arc] = 1
+                
+        return incidMatrix
+    
+    def _gMatrix(self, alpha=0.85, nodelist=None):
+        M = self.adjacencyMatrix()
+        (n,m) = M.shape
+        
+        Danglers = numpy.where(M.sum(axis=1)==0)
+        
+        for d in Danglers[0]:
+            M[d]=1.0/n
+        
+        M=M/M.sum(axis=1)
+        
+        P = alpha * M + (1 - alpha) * numpy.ones((n,n)) / n
+        return P
+    
+    def pageRank(self, alpha=0.85, max_iter=100, Tolerance=1.0e-6, nodelist=None):
+        M = self._gMatrix(alpha, nodelist)   
+        (n,m) = M.shape
+        ## should be square
+        x = numpy.ones((n))/n
+        for i in range(max_iter):
+            xlast = x
+            x = numpy.dot(x,M)
+            # check convergence, l1 norm            
+            err=numpy.abs(x-xlast).sum()
+            if err < n*Tolerance:
+                return numpy.asarray(x).flatten()
+
+    def SVD(self):
+        incidMatrix = self.incidenceMatrix()
+        
+        ## |V| = nodeCount
+        nodeCount = self.number_of_nodes()
+        ## |E| = edgeCount
+        edgeCount = self.number_of_edges()
+        
+        ## dont run if it will just fail;
+        if nodeCount < 3 and edgeCount < 3:
+            return
+
+        compareMatrix = numpy.zeros((nodeCount, edgeCount))
+        
+        ## As you know the SVD will give you a product A = U∑V*,
+        ## where the columns of U consists of left singular vectors
+        ## for each respective singular value σ.
+        
+        ## Create the edge incidence matrix
+        U, S, Vh = linalg.svd(incidMatrix)
+        Vt = Vh.T
+
+        reconstructedMatrix= dot(dot(U, linalg.diagsvd(S,len(incidMatrix),len(Vh))), Vh)
+        #print reconstructedMatrix
+        nSigma = reconstructedMatrix
+        V2 = [Vt[:,0], Vt[:,1]]
+        U2 = [U[:,0], U[:,1]]
+        Eig2 = [nSigma[:,0].flatten(), nSigma[:,1].flatten()]
+
+        nodeList = self.node_list()
+        #bob = Linalg::DMatrix[[5,5,0,0,0,5]]
+        #bobEmbed = bob * u2 * eig2.inverse
+
+        
     def to_dot_file(self, primary_type=None, exclude_filter=None):
         import pydot
         import time

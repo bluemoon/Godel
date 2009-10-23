@@ -6,6 +6,8 @@ sys.path.append('data/conceptnet/')
 from csc.util.persist import get_picklecached_thing
 from csc.conceptnet4.models import Concept
 from csc.conceptnet4.analogyspace import conceptnet_2d_from_db
+from csc.divisi.blend import Blend
+
 from csc.nl import get_nl
 import csc
 
@@ -59,8 +61,12 @@ class Divsi:
     svd = None
     def __init__(self):
         self.helper = DivsiHelper()
-        self.cnet_normalized = conceptnet_2d_from_db('en').normalized()
-        self.analogySpace = self.cnet_normalized.svd()
+        self.cnet_normalized = conceptnet_2d_from_db('en')
+        self.affectwn_raw = get_picklecached_thing('data/divsi/affectiveWNmatrix.pickle')
+        self.affectWN = self.affectwn_raw.normalized()
+        self.analogySpace = Blend([self.affectWN, self.cnet_normalized]).svd()
+
+
         self.EN_NL = get_nl('en')
 
     def load_svd(self, k=100):

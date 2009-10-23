@@ -46,7 +46,7 @@ class alchemy_api:
             if ele.tag == 'entity':
                 uni_sentence.named_entity.append({ele.find('text').text:ele.find("type").text})
                 ele.clear()
-
+        
 
     def run_all(self, uni_sentence):
         self.named(uni_sentence)

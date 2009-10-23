@@ -47,7 +47,7 @@ class sentence:
         self.rule_engine = rule_engine()
         self.helper = sentence_helper()
 
-        self.hg = HG()
+        
 
         self.concepts = Concepts(self.options)
         
@@ -57,6 +57,8 @@ class sentence:
             return
         
         word_set = []
+
+        self.hg = HG()
         
         tokenized = self.helper.tokenize(Sentence)
         tagged = self.helper.tag(tokenized)
@@ -94,11 +96,14 @@ class sentence:
             self.hg.features_in(universalSentence) 
         
             hg = self.hg.get_hypergraph()
+            self.hg.analysis()
+            
             universalSentence.hypergraph = hg
             ## then init the rule engine
             self.rule_engine.initialize(universalSentence)
         
         self.concepts.deriveConcepts(universalSentence)
         
+
         debug(universalSentence)
         

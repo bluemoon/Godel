@@ -11,9 +11,14 @@ class Concepts:
         out = []
         
         similarity = self.divsi.concept_similarity(universal_word)
-        out.append(similarity)
+        if similarity:
+            out.append(similarity)
+        
 
         concept = self.conceptNet.Connectors(universal_word)
         out.append(concept)
+
+        #concept = self.conceptNet.Surface(universal_word)
+        #out.append(concept)
 
         return out

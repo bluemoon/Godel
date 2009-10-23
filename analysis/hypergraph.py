@@ -1,5 +1,5 @@
+from structures.atoms import Hypergraph
 
-from structures.atoms import Atoms
 from data.prepositions import prepositions
 from rule_engine import rule_engine
 
@@ -9,7 +9,7 @@ import nltk
 
 class HG:
     def __init__(self):
-        self.atoms = Atoms()
+        self.atoms = Hypergraph()
         self.useful = []
 
     def sentenceToHG(self, uni_sentence):
@@ -88,10 +88,13 @@ class HG:
                                        with_merge=False)
             
     def analysis(self):
-        self.sentence_analyze()
-        
-    def sentence_analyze(self):
-        self.atoms.to_dot_file(primary_type='sentence')
+        #pR = self.atoms.pageRank()
+        #debug(pR)
+        self.atoms.SVD()
+        #adjList = self.atoms.adjacencyList()
+        #for a in adjList:
+        #    print '%d\t%d' % (a[0],a[1])
+        pass
     
     
 
