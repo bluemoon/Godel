@@ -3,7 +3,7 @@
 .#*
 *#
 *.o
-
+documentation/build/*
 engines/codecs/relex/bin/*
 processing/mln/
 data/README

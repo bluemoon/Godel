@@ -4,7 +4,6 @@ from processing.sentence import sentence
 from utils.debug import *
 from utils.progress_bar import ProgressBar
 
-
 import sys
 
 class main:

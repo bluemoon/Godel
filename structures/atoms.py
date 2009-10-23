@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from utils.debug import *
+
 from collections import deque
+
 import numpy
 from scipy import linalg
 from scipy import dot
 import scipy
+
 
 ## Original: http://www.ece.arizona.edu/~denny/python_nest/graph_lib_1.0.1.html
 ## Modifications: Alex Toney
@@ -69,6 +73,7 @@ class Hypergraph:
         self.hidden_nodes = {}
         self.edge_types = []
         self.types = {}
+        self.node_number = {}
 
     
     def copy(self, G):
@@ -103,6 +108,8 @@ class Hypergraph:
         ## to the node via the node_data parameter.
         if (not self.nodes.has_key(node_id)) and (not self.hidden_nodes.has_key(node_id)):
             self.nodes[node_id]=([],[],node_data, self.next_node_id)
+            self.node_number[self.next_node_id] = node_id
+            
             self.next_node_id += 1
         else:
             if not ignore_dupes:
@@ -324,6 +331,12 @@ class Hypergraph:
         hel=self.hidden_edges.keys()
         return hel[:]
 
+    def nodeByNodeNum(self, number):
+        if self.node_number.has_key(number):
+            return self.node_number[number]
+        else:
+            return False
+        
     def node_out_edges(self, node):
         if self.has_node(node):
             out_arcs = self.out_arcs(node)
@@ -606,29 +619,33 @@ class Hypergraph:
             
         return adjMatrix
     
-    def incidenceOfNode(self, Node):
+    def incidenceOfNode(self, Node, edgeCount):
         nodeCount = 1
         vertex = 0
-        edgeCount = self.out_degree(Node)
-        incidMatrix = numpy.zeros((nodeCount, edgeCount))
 
+        if len(self.out_arcs(Node)) < 1:
+            return
+        
+        incidMatrix = numpy.zeros((edgeCount, nodeCount))
         for arc in self.out_arcs(Node):
-            incidMatrix[vertex, arc] = 1
-                
+            incidMatrix[arc, vertex] = 1
+        
         return incidMatrix
     
     def incidenceMatrix(self):
         wholeList = []
         ## |V| = nodeCount
-        nodeCount = self.number_of_nodes()
+        nodeCount = self.number_of_nodes()+1
         ## |E| = edgeCount
-        edgeCount = self.number_of_edges()
-        incidMatrix = numpy.zeros((nodeCount, edgeCount))
+        edgeCount = self.number_of_edges()+1
+        incidMatrix = numpy.zeros((edgeCount, nodeCount), int)
         allNodes = self.node_list()
+        
         for node in allNodes:
             vertex = self.node(node)[3]
             for arc in self.out_arcs(node):
-                incidMatrix[vertex, arc] = 1
+                if arc < edgeCount:
+                    incidMatrix[arc, vertex] += 1
                 
         return incidMatrix
     
@@ -659,19 +676,18 @@ class Hypergraph:
             if err < n*Tolerance:
                 return numpy.asarray(x).flatten()
 
-    def SVD(self):
+    def SVD(self, Node=None, dropAlpha=0.90):
+        """ singular value decomposition """
+
         incidMatrix = self.incidenceMatrix()
-        
         ## |V| = nodeCount
         nodeCount = self.number_of_nodes()
         ## |E| = edgeCount
-        edgeCount = self.number_of_edges()
+        edgeCount = self.number_of_edges()+1
         
         ## dont run if it will just fail;
         if nodeCount < 3 and edgeCount < 3:
             return
-
-        compareMatrix = numpy.zeros((nodeCount, edgeCount))
         
         ## As you know the SVD will give you a product A = U∑V*,
         ## where the columns of U consists of left singular vectors
@@ -681,18 +697,49 @@ class Hypergraph:
         U, S, Vh = linalg.svd(incidMatrix)
         Vt = Vh.T
 
-        reconstructedMatrix= dot(dot(U, linalg.diagsvd(S,len(incidMatrix),len(Vh))), Vh)
+        diagMatrix = linalg.diagsvd(S,len(incidMatrix),len(Vh))
         #print reconstructedMatrix
-        nSigma = reconstructedMatrix
-        V2 = [Vt[:,0], Vt[:,1]]
-        U2 = [U[:,0], U[:,1]]
-        Eig2 = [nSigma[:,0].flatten(), nSigma[:,1].flatten()]
+        nSigma = diagMatrix
+        U2   = numpy.mat(U)
+        V2   = numpy.mat(Vh)
+        Eig2 = numpy.mat(nSigma)
 
-        nodeList = self.node_list()
-        #bob = Linalg::DMatrix[[5,5,0,0,0,5]]
-        #bobEmbed = bob * u2 * eig2.inverse
+        if not Node:
+            nodeList = self.nodes.items()
+            curNode = nodeList.pop(0)
+        else:
+            curNode = Node
+            
+        newNode = self.incidenceOfNode(curNode[0], edgeCount)
+        if newNode == None:
+            return
+        
 
         
+        U    = U2.T
+        Eig  = Eig2.I.T
+        node = newNode.T
+        
+        #debug(U.shape, prefix="U")
+        #debug(Eig2.shape, prefix="Eig")
+        #debug(node.shape, prefix="node")
+        #debug(incidMatrix.shape, prefix="IncidenceMatrix")
+        
+        node = node * U * Eig2
+        
+        each = {}
+        count = 0
+        
+        for x in V2:
+            cosineSim = (node * x.T) / (linalg.norm(x) * linalg.norm(node))
+            each[self.nodeByNodeNum(count)] = cosineSim 
+            count += 1
+
+        
+        print each
+            
+        
+                
     def to_dot_file(self, primary_type=None, exclude_filter=None):
         import pydot
         import time
