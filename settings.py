@@ -1,10 +1,11 @@
 from libs.configobj.configobj import ConfigObj
+import os
 
-SETTING_FILE = "settings.cfg"
+SETTING_FILE = os.path.dirname(__file__) + "/settings.cfg"
 
 class settings:
     def __init__(self):
-        self.settings = ConfigObj(SETTING_FILE)
+        self.settings = ConfigObj(SETTING_FILE, unrepr=True)
         
     def Get(self, setting):
         """expecting input like 'section.setting'"""

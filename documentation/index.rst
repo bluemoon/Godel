@@ -6,23 +6,22 @@
 Welcome to Godel's documentation!
 =================================
 
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search` 
  
-Modules
-=======
+Modules 
+======= 
 .. toctree::
-   :maxdepth: 2
-     
+   :maxdepth: 4
+
+   analysis
+   data
+   engines
+   extensions
+   input
+   main
+   processing 
+   settings 
+   structures 
+   utils  
    structures/atoms
 
 

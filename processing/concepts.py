@@ -1,5 +1,4 @@
 from structures.containers import universalConcept
-from structures.atoms import Hypergraph
 from utils.debug import *
 
 class ConceptHelper:

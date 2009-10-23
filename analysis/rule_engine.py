@@ -1,7 +1,7 @@
 from collections import deque
 from utils.debug import *
 from rule_parser import parse_file
-from structures.atoms import Hypergraph
+from structures.Graph import Graph
 
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer

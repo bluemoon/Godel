@@ -1,4 +1,4 @@
-from structures.atoms import Hypergraph
+from structures.Graph import Graph
 
 from data.prepositions import prepositions
 from rule_engine import rule_engine
@@ -9,7 +9,7 @@ import nltk
 
 class HG:
     def __init__(self):
-        self.atoms = Hypergraph()
+        self.atoms = Graph()
         self.useful = []
 
     def sentenceToHG(self, uni_sentence):
@@ -90,7 +90,7 @@ class HG:
     def analysis(self):
         #pR = self.atoms.pageRank()
         #debug(pR)
-        self.atoms.SVD()
+        print self.atoms.SVD_each()
         #adjList = self.atoms.adjacencyList()
         #for a in adjList:
         #    print '%d\t%d' % (a[0],a[1])
