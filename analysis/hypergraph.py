@@ -90,7 +90,7 @@ class HG:
     def analysis(self):
         #pR = self.atoms.pageRank()
         #debug(pR)
-        print self.atoms.SVD_each()
+        #print self.atoms.SVD_each()
         #adjList = self.atoms.adjacencyList()
         #for a in adjList:
         #    print '%d\t%d' % (a[0],a[1])

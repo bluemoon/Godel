@@ -47,8 +47,6 @@ class sentence:
         self.rule_engine = rule_engine()
         self.helper = sentence_helper()
 
-        
-
         self.concepts = Concepts(self.options)
         
         

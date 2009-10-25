@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from utils.debug import *
-
 from collections import deque
 
 import numpy
@@ -64,6 +62,7 @@ class GraphException(Exception):
         return repr(self.value)
 
 class Graph:
+    """ A graph with edges, nodes, and edge types """
     def __init__(self):
         self.next_edge_id = 0
         self.next_node_id = 0
@@ -125,23 +124,26 @@ class Graph:
                 raise GraphException('Duplicate Node: %s', node_id)
 
 
-    #--Deletes the node and all in and out arcs.
+    
     def delete_node(self, node_id):
+        """ Deletes the node and all in and out arcs. """
+        
         #--Remove fanin connections.
         in_edges=self.in_arcs(node_id)
         for edge in in_edges:
             self.delete_edge(edge)
+            
         #--Remove fanout connections.
         out_edges = self.out_arcs(node_id)
         for edge in out_edges:
             self.delete_edge(edge)
+            
         #--Delete node.
         del self.nodes[node_id]
 
 
-    
     def delete_edge(self, edge_id):
-        ## deletes the edge.
+        """ Deletes the edge. """
         head_id = self.head(edge_id)
         tail_id = self.tail(edge_id)
         head_data = map(None, self.nodes[head_id])
@@ -154,7 +156,7 @@ class Graph:
         if edge_type in self.types:
             del self.types[edge_type]
             
-    def with_merge(self, head_id, tail_id, edge_data, edge_type):
+    def _with_merge(self, head_id, tail_id, edge_data, edge_type):
          edge = self.edge(head_id, tail_id)
          if edge != False:
              cEdge_type = self.edges[edge][3]
@@ -187,7 +189,7 @@ class Graph:
         self.next_edge_id = self.next_edge_id + 1
         
         if with_merge and edge_data:
-           merged = self.with_merge(head_id, tail_id, edge_data, edge_type)
+           merged = self._with_merge(head_id, tail_id, edge_data, edge_type)
            if merged != False:
                return merged
 
@@ -217,10 +219,12 @@ class Graph:
         
         return edge_id
 
-    #--Removes the edge from the normal graph, but does not delete
-    #--its information.  The edge is held in a separate structure
-    #--and can be unhidden at some later time.
+    
     def hide_edge(self, edge_id):
+        """ Removes the edge from the normal graph, but does not delete
+        its information.  The edge is held in a separate structure
+        and can be unhidden at some later time.
+        """
         self.hidden_edges[edge_id] = self.edges[edge_id]
         ed = map(None, self.edges[edge_id])
         head_id = ed[0]
@@ -231,10 +235,12 @@ class Graph:
         td[0].remove(edge_id)
         del self.edges[edge_id]
 
-    ## Similar to above.
-    ## Stores a tuple of the node data, and the edges that are incident to and from
-    ## the node.  It also hides the incident edges.
+    
     def hide_node(self, node_id):	    
+        """ Similar to above.
+        Stores a tuple of the node data, and the edges that are incident to and from
+        the node.  It also hides the incident edges."""
+        
         degree_list = self.arc_list(node_id)
         self.hidden_nodes[node_id] = (self.nodes[node_id],degree_list)
         for edge in degree_list:
@@ -578,9 +584,13 @@ class Graph:
         return bfs_list
 
 
-    #--Returns a list of nodes in some BACKWARDS BFS order.
-    #--Starting from the source node, BFS proceeds along back edges.
+
+    
     def back_bfs(self, source_id):
+        """
+        Returns a list of nodes in some BACKWARDS BFS order.
+        Starting from the source node, BFS proceeds along back edges.
+        """
         nodes_already_queued = {source_id:0}
         bfs_list  = []
         bfs_queue = Queue()
@@ -680,8 +690,8 @@ class Graph:
         x = numpy.ones((n))/n
         for i in range(max_iter):
             xlast = x
-            x = numpy.dot(x,M)
-            # check convergence, l1 norm            
+            x = numpy.dot(x,M) 
+            ## check convergence, L1 norm            
             err=numpy.abs(x-xlast).sum()
             if err < n*Tolerance:
                 return numpy.asarray(x).flatten()
@@ -689,6 +699,7 @@ class Graph:
     def SVD(self, Node, dropAlpha=0.90):
         """
         Singular value decomposition for *Node*
+        
         :param Node: the node you want to run SVD on.
         :param dropAlpha: the cosine similiarity limit.
         """
@@ -729,17 +740,17 @@ class Graph:
             return
         
         if Eig2.shape[0] == Eig2.shape[1]:
-            # this shape is useless to us, singular matrix
+            ## this shape is useless to us, singular matrix
             return
         
         U    = U2.T
         Eig  = Eig2.I.T
         node = newNode.T
 
-        #debug(U.shape, prefix="U")
-        #debug(Eig2.shape, prefix="Eig")
-        #debug(node.shape, prefix="node")
-        #debug(incidMatrix.shape, prefix="IncidenceMatrix")
+        ## debug(U.shape, prefix="U")
+        ## debug(Eig2.shape, prefix="Eig")
+        ## debug(node.shape, prefix="node")
+        ## debug(incidMatrix.shape, prefix="IncidenceMatrix")
         
         node = node * U * Eig2
         
@@ -756,13 +767,15 @@ class Graph:
         return each
             
     def SVD_each(self):
+        """ run SVD on every item in the graph return
+        a list which corresponds to a dict of each SVD """
         nodeList = self.nodes.items()
         each = []
         
         while nodeList:
             curNode = nodeList.pop(0)[0]
             currentSVD = self.SVD(Node=curNode)
-            each.append(currentSVD)
+            each.append({curNode:currentSVD})
 
         return each
         
@@ -812,9 +825,6 @@ class Graph:
 
                 callgraph.add_edge(current_edge)
 
-        #callgraph.write_dot('data/graphs/%f-current.dot' % time.time())
-        #callgraph.write_png('data/graphs/%f-current.png' % time.time())
-        
         if primary_type and primary_type in self.types:
             heads = []
             for x in self.types[primary_type]:

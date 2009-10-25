@@ -6,7 +6,6 @@
 Welcome to Godel's documentation!
 =================================
 
- 
 Modules 
 ======= 
 .. toctree::
@@ -22,7 +21,6 @@ Modules
    settings 
    structures 
    utils  
-   structures/atoms
-
+   todo
 
  
