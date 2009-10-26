@@ -40,7 +40,7 @@ class Clustering:
         incidence = numpy.array(incidence)
         white = whiten(incidence)
 
-        initialCentroids = self.kInit(white, k)
+        initialCentroids = self._kInit(white, k)
         centroids, idx = kmeans2(initialCentroids, k,
                                  thresh=threshold,
                                  minit='points')

@@ -8,7 +8,7 @@ class GraphAlgorithms:
         self.clustering = Clustering()
         
     def cluster(self, G, cType=None, k=3):
-        if cType == 'kmeans':
+        if not cType or cType == 'kmeans':
             return self.clustering.kMeans(G, k)
     
     def pageRank(self, G, **kwargs):
