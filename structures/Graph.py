@@ -6,6 +6,7 @@ from scipy import linalg
 from scipy import dot
 import scipy
 
+from structures.GraphAlgorithms import GraphAlgorithms
 
 ## Original: http://www.ece.arizona.edu/~denny/python_nest/graph_lib_1.0.1.html
 ## Modifications: Alex Toney
@@ -66,6 +67,7 @@ class GraphException(Exception):
 class Graph:
     """ A graph with edges, nodes, and edge types """
     Type = 'graph'
+    algorithms = None
     
     def __init__(self):
         self.next_edge_id = 0
@@ -78,6 +80,7 @@ class Graph:
         self.types = {}
         self.node_number = {}
 
+        self.algorithms = GraphAlgorithms()
     
     def copy(self, G):
         """ Performs a copy of the graph, G, into self.
