@@ -51,6 +51,22 @@ The :mod:`sentence` Module
     :undoc-members:
     :show-inheritance:
 
+The :mod:`sentence_helper` Module
+---------------------------------
+
+.. automodule:: processing.sentence_helper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. testsetup:: *
+   from processing.sentence_helper import sentence_helper
+
+>>> s = sentence_helper()
+... s.tokenize('the quick brown fox')
+['the', 'quick', 'brown', 'fox']
+
+
 The :mod:`calais_api` Module
 ----------------------------
 

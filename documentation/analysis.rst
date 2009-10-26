@@ -38,6 +38,7 @@ The :mod:`rule_engine` Module
 The :mod:`hypergraph` Module
 ----------------------------
 
+.. todo:: move this to processing
 .. automodule:: analysis.hypergraph
     :members:
     :undoc-members:

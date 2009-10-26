@@ -65,8 +65,8 @@ class Divsi:
         self.affectwn_raw = get_picklecached_thing('data/divsi/affectiveWNmatrix.pickle')
         self.affectWN = self.affectwn_raw.normalized()
         self.analogySpace = Blend([self.affectWN, self.cnet_normalized]).svd()
-
-
+        
+        
         self.EN_NL = get_nl('en')
 
     def load_svd(self, k=100):

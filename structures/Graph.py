@@ -61,8 +61,12 @@ class GraphException(Exception):
     def __str__(self):
         return repr(self.value)
 
+        
+
 class Graph:
     """ A graph with edges, nodes, and edge types """
+    Type = 'graph'
+    
     def __init__(self):
         self.next_edge_id = 0
         self.next_node_id = 0
@@ -668,117 +672,24 @@ class Graph:
                     incidMatrix[arc, vertex] += 1
                 
         return incidMatrix
-    
-    def _gMatrix(self, alpha=0.85, nodelist=None):
-        M = self.adjacencyMatrix()
-        (n,m) = M.shape
-        
-        Danglers = numpy.where(M.sum(axis=1)==0)
-        
-        for d in Danglers[0]:
-            M[d]=1.0/n
-        
-        M=M/M.sum(axis=1)
-        
-        P = alpha * M + (1 - alpha) * numpy.ones((n,n)) / n
-        return P
-    
-    def pageRank(self, alpha=0.85, max_iter=100, Tolerance=1.0e-6, nodelist=None):
-        M = self._gMatrix(alpha, nodelist)   
-        (n,m) = M.shape
-        ## should be square
-        x = numpy.ones((n))/n
-        for i in range(max_iter):
-            xlast = x
-            x = numpy.dot(x,M) 
-            ## check convergence, L1 norm            
-            err=numpy.abs(x-xlast).sum()
-            if err < n*Tolerance:
-                return numpy.asarray(x).flatten()
 
-    def SVD(self, Node, dropAlpha=0.90):
-        """
-        Singular value decomposition for *Node*
-        
-        :param Node: the node you want to run SVD on.
-        :param dropAlpha: the cosine similiarity limit.
-        """
-
-        incidMatrix = self.incidenceMatrix()
+    def incidenceList(self):
+        wholeList = []
         ## |V| = nodeCount
-        nodeCount = self.number_of_nodes()
+        nodeCount = self.number_of_nodes()+1
         ## |E| = edgeCount
         edgeCount = self.number_of_edges()+1
+        allNodes = self.node_list()
         
-        ## dont run if it will just fail;
-        if nodeCount < 3 and edgeCount < 3:
-            return
-        
-        ## As you know the SVD will give you a product A = U∑V*,
-        ## where the columns of U consists of left singular vectors
-        ## for each respective singular value σ.
-        
-        ## Create the edge incidence matrix
-        U, S, Vh = linalg.svd(incidMatrix)
-        Vt = Vh.T
+        for node in allNodes:
+            vertex = self.node(node)[3]
+            for arc in self.out_arcs(node):
+                wholeList.append([arc, vertex])
+                
+        return wholeList
 
-        diagMatrix = linalg.diagsvd(S,len(incidMatrix),len(Vh))
 
-        nSigma = diagMatrix
-        U2   = numpy.mat(U)
-        V2   = numpy.mat(Vh)
-        Eig2 = numpy.mat(nSigma)
-
-        if not Node:
-            nodeList = self.nodes.items()
-            curNode = nodeList.pop(0)[0]
-        else:
-            curNode = Node
-            
-        newNode = self.incidenceOfNode(curNode, edgeCount)
-        if newNode == None:
-            return
-        
-        if Eig2.shape[0] == Eig2.shape[1]:
-            ## this shape is useless to us, singular matrix
-            return
-        
-        U    = U2.T
-        Eig  = Eig2.I.T
-        node = newNode.T
-
-        ## debug(U.shape, prefix="U")
-        ## debug(Eig2.shape, prefix="Eig")
-        ## debug(node.shape, prefix="node")
-        ## debug(incidMatrix.shape, prefix="IncidenceMatrix")
-        
-        node = node * U * Eig2
-        
-        each = {}
-        count = 0
-        
-        for x in V2:
-            cosineSim = (node * x.T) / (linalg.norm(x) * linalg.norm(node))
-            if cosineSim > dropAlpha:
-                each[self.nodeByNodeNum(count)] = cosineSim.A.tolist()[0][0]
-
-            count += 1
-            
-        return each
-            
-    def SVD_each(self):
-        """ run SVD on every item in the graph return
-        a list which corresponds to a dict of each SVD """
-        nodeList = self.nodes.items()
-        each = []
-        
-        while nodeList:
-            curNode = nodeList.pop(0)[0]
-            currentSVD = self.SVD(Node=curNode)
-            each.append({curNode:currentSVD})
-
-        return each
-        
+    
     def to_dot_file(self, primary_type=None, exclude_filter=None):
         import pydot
         import time

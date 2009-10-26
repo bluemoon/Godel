@@ -3,39 +3,16 @@ from structures.containers import universal_sentence
 from structures.containers import universal_word
 
 from engines.codecs.relex import relex
-from processing.tagger import tagger
 from processing.concepts import Concepts
-from analysis.hypergraph import HG
+from processing.hypergraph import HG
+from processing.sentence_helper import sentence_helper
 from analysis.relex_analysis import relex_analyze
 from analysis.rule_engine import rule_engine
 
 from utils.debug import *
 
-import nltk
-
-class sentence_helper:
-    def __init__(self):
-        self.tagger = tagger()
-        self.tags = []
-        
-    def tokenize(self, sentence):
-        return nltk.word_tokenize(sentence)
-    
-    def tag(self, tokenized):
-        self.tags = self.tagger.tag(tokenized)
-        return self.tags
-
-    ## things to be applied to the universal_word
-    def universalWord(self, uni_word):
-        self.tagToAttribute(uni_word)
-
-    def tagToAttribute(self, uni_word):
-        currentTag = self.tags.pop(0)
-        partOfSpeech = currentTag[1]
-        uni_word.nltk_pos = partOfSpeech
-    
-    
 class sentence:
+    """ the main processing class for all of Godel """
     def __init__(self, options):
         self.sentence_frame = []
         self.options = options

@@ -10,6 +10,8 @@ Modules
 ======= 
 .. toctree::
    :maxdepth: 4
+   
+   todo
 
    analysis
    data
@@ -20,7 +22,7 @@ Modules
    processing 
    settings 
    structures 
-   utils  
-   todo
+   utils
+   
 
  

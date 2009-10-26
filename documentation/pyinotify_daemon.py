@@ -16,7 +16,7 @@ class ProcessFile(ProcessEvent):
         filename = event.name.split('.')
         file_ext = filename[-1]
         
-        if file_ext == 'rst':
+        if file_ext == 'rst' or file_ext == 'py': 
             print 'File modified "%s" ' % (event.name),
             
             cmd = 'sphinx-build -b html . build'
@@ -63,6 +63,7 @@ class main:
         notifier = ThreadedNotifier(wm, default_proc_fun=handler)
         ## rec is recursive and we want that set
         wm.add_watch('.', IN_MODIFY, rec=True)
+        wm.add_watch('../', IN_MODIFY, rec=True)
         notifier.loop()
 
 if __name__ == "__main__":
