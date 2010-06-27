@@ -1,8 +1,11 @@
+Goals
+=====
+# Get the relex parser working again
 Requirements
 ============
-NLTK
-clips
-pyClips
+# NLTK
+# clips
+# pyClips
 
 
 License
