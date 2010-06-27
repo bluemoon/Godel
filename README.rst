@@ -1,11 +1,12 @@
 Goals
 =====
-# Get the relex parser working again
+1. Get the relex parser working again
+2. Get the C code from the NLP project and make it more modular
 Requirements
 ============
-# NLTK
-# clips
-# pyClips
+1. NLTK
+2. clips (optional now)
+3. pyClips (also optional now)
 
 
 License
