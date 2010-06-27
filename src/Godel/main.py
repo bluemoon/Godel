@@ -6,7 +6,7 @@ from utils.progress_bar import ProgressBar
 
 import sys
 
-class main:
+class main: 
     def __init__(self):
         self.s = settings()
         
